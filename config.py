@@ -1,4 +1,4 @@
-# --- Janela ---
+# --- oiii nilo
 WINDOW_WIDTH = 960
 WINDOW_TITLE = "Guerra no Galinheiro"
 
