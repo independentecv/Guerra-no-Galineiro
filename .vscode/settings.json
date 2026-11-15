@@ -1,0 +1,13 @@
+{
+    "workbench.colorCustomizations": {
+        "titleBar.activeBackground": "#e86f4e38",
+        "titleBar.inactiveBackground": "#e86f4e1f",
+        "titleBar.border": "#e86f4e",
+        "statusBar.border": "#e86f4e",
+        "statusBar.foreground": "#e86f4e",
+        "activityBar.activeBorder": "#e86f4e",
+        "focusBorder": "#e86f4e80",
+        "__omnify": "heatblast:subtle"
+    },
+    "omnify.alien": "heatblast"
+}
