@@ -1,13 +1,14 @@
 {
     "workbench.colorCustomizations": {
-        "titleBar.activeBackground": "#e86f4e38",
-        "titleBar.inactiveBackground": "#e86f4e1f",
-        "titleBar.border": "#e86f4e",
-        "statusBar.border": "#e86f4e",
-        "statusBar.foreground": "#e86f4e",
-        "activityBar.activeBorder": "#e86f4e",
-        "focusBorder": "#e86f4e80",
+        "titleBar.activeBackground": "#E86F4E38",
+        "titleBar.inactiveBackground": "#E86F4E1f",
+        "titleBar.border": "#E86F4E",
+        "statusBar.border": "#E86F4E",
+        "statusBar.foreground": "#E86F4E",
+        "activityBar.activeBorder": "#E86F4E",
+        "focusBorder": "#E86F4E80",
         "__omnify": "heatblast:subtle"
     },
-    "omnify.alien": "heatblast"
+    "omnify.alien": "heatblast",
+    "python-envs.defaultEnvManager": "ms-python.python:venv"
 }
