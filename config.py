@@ -99,7 +99,7 @@ ROUND_CLEAR_BONUS = 20                 # sementes de bonus ao limpar uma onda
 # --- Vidas (pintinhos) ---
 # Confirmado com o usuario: regenera +1 por rodada (nao reseta pra 3),
 # nunca passa do teto.
-MAX_PINTINHOS = 100
+MAX_PINTINHOS = 20
 
 # --- Ondas / dificuldade (Fase 4) ---
 WAVE_BASE_ENEMIES = 2

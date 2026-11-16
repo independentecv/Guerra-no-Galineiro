@@ -6,6 +6,7 @@ from PPlay.window import Window
 from PPlay.sprite import Sprite
 from PPlay.collision import Collision
 
+
 import config
 import ranking
 from entities import Enemy, Chicken, Puddle
@@ -64,6 +65,12 @@ BARRA_ITENS_ALTURA = barra_itens.height
 
 painel_baixo = Sprite('assets/painel_baixo.png')
 painel_baixo.set_position(0, config.WINDOW_HEIGHT - painel_baixo.height)
+gameover = Sprite('assets/gameover.jpg')
+gameover.set_scale(
+    config.WINDOW_WIDTH / gameover.width,
+    config.WINDOW_HEIGHT / gameover.height
+)
+gameover.set_position(0, 0)
 PAINEL_BAIXO_Y = config.WINDOW_HEIGHT - painel_baixo.height
 
 btn_iniciar = Sprite('assets/botao_acao.png')
@@ -251,23 +258,34 @@ while True:
     # GAME OVER
     # ============================================================
     if estado_jogo["estado"] == "GAMEOVER":
-        # registra a partida no ranking uma unica vez
         if not estado_jogo["ranking_salvo"]:
             estado_jogo["posicao_ranking"] = ranking.registrar(estado_jogo["rodada"])
             estado_jogo["ranking_salvo"] = True
 
         mx, my = janela.mouse.get_position()
+
         if janela.mouse.button_down(1):
             if clicou_em(btn_reiniciar, mx, my):
                 estado_jogo = resetar_partida()
             elif clicou_em(btn_menu_gameover, mx, my):
                 tela = "MENU"
 
-        texto_centralizado("GAME OVER", config.WINDOW_HEIGHT / 2 - 90, tamanho=32, cor="red")
-        texto_centralizado(f"Onda alcancada: {estado_jogo['rodada']}", config.WINDOW_HEIGHT / 2 - 40, cor="white")
+        gameover.draw()
+
+        texto_centralizado(
+            f"Onda alcancada: {estado_jogo['rodada']}",
+            config.WINDOW_HEIGHT / 2 - 40,
+            cor="white"
+        )
+
         pos_rank = estado_jogo["posicao_ranking"]
         if pos_rank is not None:
-            texto_centralizado(f"Posicao no ranking: {pos_rank}o", config.WINDOW_HEIGHT / 2 - 12, cor="white")
+            texto_centralizado(
+                f"Posicao no ranking: {pos_rank}o",
+                config.WINDOW_HEIGHT / 2 - 12,
+                cor="white"
+            )
+
         desenhar_botao(btn_reiniciar, "Reiniciar", mx, my)
         desenhar_botao(btn_menu_gameover, "Menu", mx, my)
 

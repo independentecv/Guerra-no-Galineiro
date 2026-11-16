@@ -2,7 +2,7 @@
 import random
 import pygame
 from PPlay.sprite import Sprite
-
+from animacoes import calcular_deslocamento
 import config
 
 ENEMY_IMAGES = {
@@ -22,7 +22,8 @@ class Enemy:
     def __init__(self, tipo, lane_index, multiplicador=1.0):
         self.tipo = tipo
         self.sprite = Sprite(ENEMY_IMAGES[tipo])
-
+        self.inicio_animacao = pygame.time.get_ticks()
+        self.deslocamento_animacao = 0
         self.speed_x = config.ENEMY_SPEED[tipo] * multiplicador
         self.hp_max = int(round(config.ENEMY_HP[tipo] * multiplicador))
         self.hp = self.hp_max
@@ -51,6 +52,8 @@ class Enemy:
 
     def update(self, multiplicador_velocidade=1.0):
         agora = pygame.time.get_ticks()
+        self.sprite.y -= self.deslocamento_animacao
+        self.deslocamento_animacao = 0
 
         # Só a raposa decide trocar de linha, e só quando não está no meio de uma troca
         if self.pula_linha and self.lane_atual == self.lane_alvo:
@@ -76,7 +79,13 @@ class Enemy:
             else:
                 self.sprite.y = y_alvo
                 self.lane_atual = self.lane_alvo
+        tempo = (agora - self.inicio_animacao) / 1000
 
+        self.deslocamento_animacao = calcular_deslocamento(
+            self.tipo, tempo
+        )
+
+        self.sprite.y += self.deslocamento_animacao
     def chegou_no_galinheiro(self):
         return self.sprite.x + self.sprite.width >= config.GALINHEIRO_X
 
