@@ -210,11 +210,13 @@ class Chicken:
             alvos = self._encontrar_varios_alvos(inimigos, config.CODORNA_QTD_OVOS)
             if not alvos:
                 return
+
             for alvo in alvos:
                 ovos.append(Egg(
                     self.centro_x, self.centro_y, alvo,
                     self.dano * config.CODORNA_DANO_MULT,
                     self.vel_ovo * config.CODORNA_VEL_MULT,
+                    tipo_especial="codorna",
                     sprite_path='assets/ovo_codorna.png',
                 ))
         else:
@@ -237,32 +239,58 @@ class Chicken:
         if self.selecionada:
             self.sprite_selecao.draw()
         self.sprite.draw()
+def redimensionar_ovo(caminho, tamanho):
+    imagem = pygame.image.load(caminho).convert_alpha()
 
+    area = imagem.get_bounding_rect()
+    imagem = imagem.subsurface(area).copy()
+
+    largura, altura = imagem.get_size()
+    escala = tamanho / max(largura, altura)
+
+    nova_largura = int(largura * escala)
+    nova_altura = int(altura * escala)
+
+    imagem = pygame.transform.smoothscale(
+        imagem, (nova_largura, nova_altura)
+    )
+
+    caminho_temp = caminho.replace(".png", "_redimensionado.png")
+    pygame.image.save(imagem, caminho_temp)
+
+    return Sprite(caminho_temp)
 
 class Egg:
-    """Projétil disparado por uma galinha. PERSEGUE o alvo (recalcula a
-    direção a cada frame) enquanto ele estiver vivo -- sem isso, ovos
-    contra inimigos rápidos (Gato) ou que mudam de linha (Raposa)
-    erravam quase sempre, porque a posição mirada no disparo ficava
-    velha rápido demais. A velocidade vem da galinha que atirou (é um
-    atributo upgradável dela, não um valor global fixo).
-
-    `tipo_especial` é None (ovo normal) ou um dos itens especiais
-    ("podre", "gigante", "chupim"); o efeito em si é resolvido no
-    main.py no momento da colisão, aqui só carregamos a etiqueta.
-    Codorna não usa tipo_especial -- é resolvido disparando vários
-    ovos normais de uma vez (ver Chicken.update)."""
 
     def __init__(self, x_origem, y_origem, alvo, dano, velocidade, tipo_especial=None, sprite_path='assets/ovo.png'):
-        self.sprite = Sprite(sprite_path)
-        self.sprite.set_position(x_origem - self.sprite.width / 2, y_origem - self.sprite.height / 2)
+        if tipo_especial is None:
+            self.sprite = Sprite(sprite_path)
+
+        elif tipo_especial == "gigante":
+            self.sprite = redimensionar_ovo(sprite_path, 60)
+
+        elif tipo_especial == "codorna":
+            self.sprite = redimensionar_ovo(sprite_path, 70)
+
+        elif tipo_especial == "podre":
+            self.sprite = redimensionar_ovo(sprite_path, 20)
+
+        elif tipo_especial == "chupim":
+            self.sprite = redimensionar_ovo(sprite_path, 25)
+
+        self.sprite.set_position(
+            x_origem - self.sprite.width / 2,
+            y_origem - self.sprite.height / 2
+        )
+
         self.dano = dano
         self.alvo = alvo
         self.velocidade = velocidade
         self.tipo_especial = tipo_especial
 
         self.vx, self.vy = self._direcao_para_alvo(x_origem, y_origem)
-
+        print("TIPO DO OVO:", tipo_especial)
+        print("CAMINHO:", sprite_path)
     def _direcao_para_alvo(self, origem_x, origem_y):
         alvo_x = self.alvo.sprite.x + self.alvo.sprite.width / 2
         alvo_y = self.alvo.sprite.y + self.alvo.sprite.height / 2
@@ -296,9 +324,7 @@ class Egg:
 
 
 class Puddle:
-    """Área de efeito deixada pelo Ovo Podre. Qualquer inimigo que passar
-    por dentro sofre um dano único de entrada (uma vez só) e fica com a
-    velocidade reduzida enquanto estiver dentro."""
+    
 
     def __init__(self, x, y):
         self.x = x

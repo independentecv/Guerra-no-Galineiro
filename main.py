@@ -11,8 +11,26 @@ import config
 import ranking
 from entities import Enemy, Chicken, Puddle
 
-# Mede a UI antes de criar a janela, para a janela ja nascer com a altura certa
-# (campo de 600px + UI do topo + UI de baixo, sem nada tapando as faixas).
+def criar_icone(caminho, tamanho=42):
+    imagem = pygame.image.load(caminho).convert_alpha()
+
+    area = imagem.get_bounding_rect()
+    imagem = imagem.subsurface(area).copy()
+
+    largura, altura = imagem.get_size()
+    escala = min(tamanho / largura, tamanho / altura)
+
+    nova_largura = int(largura * escala)
+    nova_altura = int(altura * escala)
+
+    imagem = pygame.transform.smoothscale(
+        imagem, (nova_largura, nova_altura)
+    )
+
+    caminho_temp = caminho.replace(".png", "_redimensionado.png")
+    pygame.image.save(imagem, caminho_temp)
+
+    return Sprite(caminho_temp)
 def _altura_png(caminho):
     return pygame.image.load(caminho).get_height()
 
@@ -150,15 +168,36 @@ slots_inventario = []
 for i, tipo in enumerate(config.ITEM_TYPES):
     slot_normal = Sprite('assets/slot_normal.png')
     slot_sel = Sprite('assets/slot_selecionado.png')
-    icone = Sprite(ICONE_POR_ITEM[tipo])
+    icone = criar_icone(ICONE_POR_ITEM[tipo], 42)
+    
     x = 15 + i * (slot_normal.width + SLOT_GAP)
     y = BARRA_ITENS_Y + (BARRA_ITENS_ALTURA - slot_normal.height) / 2
+    icone.set_position(x, y)
+    print(
+    tipo,
+    "posição:", icone.x, icone.y,
+    "tamanho:", icone.width, icone.height
+    )
+    icone.set_scale(0.5, 0.5)
+
     slot_normal.set_position(x, y)
     slot_sel.set_position(x, y)
-    icone.set_position(x + (slot_normal.width - icone.width) / 2, y + (slot_normal.height - icone.height) / 2 - 4)
-    slots_inventario.append({"tipo": tipo, "x": x, "y": y, "w": slot_normal.width, "h": slot_normal.height,
-                              "sprite_normal": slot_normal, "sprite_sel": slot_sel, "icone": icone})
 
+    icone.set_position(
+        x + (slot_normal.width - icone.width) / 2,
+        y + (slot_normal.height - icone.height) / 2 - 4
+    )
+
+    slots_inventario.append({
+        "tipo": tipo,
+        "x": x,
+        "y": y,
+        "w": slot_normal.width,
+        "h": slot_normal.height,
+        "sprite_normal": slot_normal,
+        "sprite_sel": slot_sel,
+        "icone": icone
+    })
 
 def novo_jogo():
     return {
