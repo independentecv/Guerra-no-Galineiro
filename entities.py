@@ -270,7 +270,7 @@ class Egg:
             self.sprite = redimensionar_ovo(sprite_path, 60)
 
         elif tipo_especial == "codorna":
-            self.sprite = redimensionar_ovo(sprite_path, 70)
+            self.sprite = redimensionar_ovo(sprite_path, 40)
 
         elif tipo_especial == "podre":
             self.sprite = redimensionar_ovo(sprite_path, 20)

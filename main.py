@@ -45,7 +45,15 @@ janela.set_background_color((60, 48, 32))   # cor atras da UI, onde nao ha campo
 # ============================================================
 # CENÁRIO ESTÁTICO (background único)
 # ============================================================
-background = Sprite('assets/background2.png')
+imagem_fundo = pygame.image.load('assets/background2.png').convert_alpha()
+imagem_fundo = pygame.transform.smoothscale(
+    imagem_fundo,
+    (config.WINDOW_WIDTH, config.PLAYFIELD_HEIGHT)
+)
+
+pygame.image.save(imagem_fundo, 'assets/background2_redimensionado.png')
+
+background = Sprite('assets/background2_redimensionado.png')
 background.set_position(0, config.PLAYFIELD_Y)
 
 ninhos = []
@@ -168,24 +176,19 @@ slots_inventario = []
 for i, tipo in enumerate(config.ITEM_TYPES):
     slot_normal = Sprite('assets/slot_normal.png')
     slot_sel = Sprite('assets/slot_selecionado.png')
-    icone = criar_icone(ICONE_POR_ITEM[tipo], 42)
+    icone = criar_icone(ICONE_POR_ITEM[tipo], 80)
     
     x = 15 + i * (slot_normal.width + SLOT_GAP)
     y = BARRA_ITENS_Y + (BARRA_ITENS_ALTURA - slot_normal.height) / 2
     icone.set_position(x, y)
-    print(
-    tipo,
-    "posição:", icone.x, icone.y,
-    "tamanho:", icone.width, icone.height
-    )
     icone.set_scale(0.5, 0.5)
 
     slot_normal.set_position(x, y)
     slot_sel.set_position(x, y)
 
     icone.set_position(
-        x + (slot_normal.width - icone.width) / 2,
-        y + (slot_normal.height - icone.height) / 2 - 4
+        x + (slot_normal.width - icone.width) / 2 + 15,
+        y + (slot_normal.height - icone.height) / 2 +15 
     )
 
     slots_inventario.append({
