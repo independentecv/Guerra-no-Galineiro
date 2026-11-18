@@ -76,8 +76,6 @@ class Enemy:
             pygame.image.save(quadro, caminho)
             frames.append(Sprite(caminho))
 
-        print("FRAMES DA RAPOSA:", len(frames))
-
         return frames
         
     def _sortear_proximo_pulo(self):
@@ -339,8 +337,6 @@ class Egg:
         self.tipo_especial = tipo_especial
 
         self.vx, self.vy = self._direcao_para_alvo(x_origem, y_origem)
-        print("TIPO DO OVO:", tipo_especial)
-        print("CAMINHO:", sprite_path)
     def _direcao_para_alvo(self, origem_x, origem_y):
         alvo_x = self.alvo.sprite.x + self.alvo.sprite.width / 2
         alvo_y = self.alvo.sprite.y + self.alvo.sprite.height / 2

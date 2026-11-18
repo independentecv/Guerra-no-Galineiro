@@ -91,7 +91,7 @@ CHICKEN_ALCANCE = 170                  # raio de ataque; alcança as 2 linhas vi
 CHICKEN_EGG_SPEED_BASE = 600           # pixels/s do ovo -- agora é atributo DA GALINHA, upgradável
 
 # --- Economia (Fase 4) ---
-STARTING_SEEDS = 100                   # da pra comprar 2 galinhas de largada
+STARTING_SEEDS = 10000                  # da pra comprar 2 galinhas de largada
 CHICKEN_COST = 50
 ENEMY_DROP = {"gato": 5, "gaviao": 15, "raposa": 10}
 ROUND_CLEAR_BONUS = 20                 # sementes de bonus ao limpar uma onda
@@ -173,6 +173,11 @@ def placement_slot_position(row_index, slot_index):
     band_top = PLAYFIELD_Y + band_index * BAND_HEIGHT
     center_y = band_top + BAND_HEIGHT / 2
 
-    slot_width = PLAYFIELD_WIDTH / SLOTS_PER_ROW
-    center_x = PLAYFIELD_X + slot_width * slot_index + slot_width / 2
+    if row_index == 0:
+        center_y += 0
+    elif row_index == 1:
+        center_y -= 25    
+
+    slot_width = PLAYFIELD_WIDTH / SLOTS_PER_ROW * 0.73
+    center_x = PLAYFIELD_X + slot_width * slot_index + slot_width / 2 + 165
     return center_x, center_y
