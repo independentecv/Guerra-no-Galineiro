@@ -8,7 +8,7 @@ import config
 ENEMY_IMAGES = {
     "gato": "assets/gato.png",
     "gaviao": "assets/gaviao.png",
-    "raposa": "assets/raposa.png",
+    "raposa": "assets/animacoes/raposa.png",
 }
 
 ENEMY_LABEL = {
@@ -19,11 +19,23 @@ ENEMY_LABEL = {
 
 
 class Enemy:
+
     def __init__(self, tipo, lane_index, multiplicador=1.0):
         self.tipo = tipo
-        self.sprite = Sprite(ENEMY_IMAGES[tipo])
+
+        self.frames_animacao = None
+        self.indice_frame = 0
+        self.proximo_frame = pygame.time.get_ticks() + 120
+
+        if tipo == "raposa":
+            self.frames_animacao = self._carregar_frames_raposa()
+            self.sprite = self.frames_animacao[0]
+        else:
+            self.sprite = Sprite(ENEMY_IMAGES[tipo])
+
         self.inicio_animacao = pygame.time.get_ticks()
         self.deslocamento_animacao = 0
+
         self.speed_x = config.ENEMY_SPEED[tipo] * multiplicador
         self.hp_max = int(round(config.ENEMY_HP[tipo] * multiplicador))
         self.hp = self.hp_max
@@ -31,15 +43,43 @@ class Enemy:
 
         self.lane_atual = lane_index
         self.lane_alvo = lane_index
-        self.vivo = True  # eggs em voo param de perseguir quando isso vira False
-        self.confuso_ate = 0  # timestamp (ms); enquanto agora < isso, anda pra tras (Ovo de Chupim)
+        self.vivo = True
+        self.confuso_ate = 0
 
-        x_inicial = 10  # nasce visivelmente dentro da floresta
+        x_inicial = 10
         y_inicial = config.lane_y_center(lane_index) - self.sprite.height / 2
         self.sprite.set_position(x_inicial, y_inicial)
 
         self._proximo_pulo = self._sortear_proximo_pulo()
 
+    def _carregar_frames_raposa(self):
+        spritesheet = pygame.image.load(
+            ENEMY_IMAGES["raposa"]
+        ).convert_alpha()
+
+        largura_frame = spritesheet.get_width() // 6
+        altura_frame = spritesheet.get_height()
+
+        frames = []
+
+        for i in range(6):
+            quadro = spritesheet.subsurface(
+                (i * largura_frame, 0, largura_frame, altura_frame)
+            ).copy()
+
+            quadro = pygame.transform.smoothscale(
+                quadro,
+                (int(largura_frame * 0.5), int(altura_frame * 0.5))
+            )
+
+            caminho = f"assets/animacoes/raposa_frame_{i}.png"
+            pygame.image.save(quadro, caminho)
+            frames.append(Sprite(caminho))
+
+        print("FRAMES DA RAPOSA:", len(frames))
+
+        return frames
+        
     def _sortear_proximo_pulo(self):
         return pygame.time.get_ticks() + random.randint(
             int(config.ENEMY_LANE_SWITCH_MIN_INTERVAL * 1000),
@@ -86,6 +126,16 @@ class Enemy:
         )
 
         self.sprite.y += self.deslocamento_animacao
+        if self.frames_animacao is not None and agora >= self.proximo_frame:
+            x = self.sprite.x
+            y = self.sprite.y
+
+            self.indice_frame = (self.indice_frame + 1) % len(self.frames_animacao)
+            self.sprite = self.frames_animacao[self.indice_frame]
+            self.sprite.set_position(x, y)
+
+            self.proximo_frame = agora + 120
+            
     def chegou_no_galinheiro(self):
         return self.sprite.x + self.sprite.width >= config.GALINHEIRO_X
 

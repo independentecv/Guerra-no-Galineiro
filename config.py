@@ -113,7 +113,7 @@ def tipos_disponiveis_na_rodada(rodada):
     tipos = ["gato"]
     if rodada >= 3:
         tipos.append("gaviao")
-    if rodada >= 5:
+    if rodada >= 1:
         tipos.append("raposa")
     return tipos
 
