@@ -6,9 +6,9 @@ from animacoes import calcular_deslocamento
 import config
 
 ENEMY_IMAGES = {
-    "gato": "assets/gato.png",
-    "gaviao": "assets/gaviao.png",
-    "raposa": "assets/animacoes/raposa.png",
+    "gato": "assets/animacoes/gato/gato.png",
+    "gaviao": "assets/animacoes/gaviao/gaviao.png",
+    "raposa": "assets/animacoes/raposa/raposa.png",
 }
 
 ENEMY_LABEL = {
@@ -30,6 +30,15 @@ class Enemy:
         if tipo == "raposa":
             self.frames_animacao = self._carregar_frames_raposa()
             self.sprite = self.frames_animacao[0]
+
+        elif tipo == "gato":
+            self.frames_animacao = self._carregar_frames_animacao(6, "gato",0.35)
+            self.sprite = self.frames_animacao[0]
+
+        elif tipo == "gaviao":
+            self.frames_animacao = self._carregar_frames_animacao(7, "gaviao", 0.80)
+            self.sprite = self.frames_animacao[0]
+
         else:
             self.sprite = Sprite(ENEMY_IMAGES[tipo])
 
@@ -72,12 +81,45 @@ class Enemy:
                 (int(largura_frame * 0.5), int(altura_frame * 0.5))
             )
 
-            caminho = f"assets/animacoes/raposa_frame_{i}.png"
+            caminho = f"assets/animacoes/raposa/raposa_frame_{i}.png"
             pygame.image.save(quadro, caminho)
             frames.append(Sprite(caminho))
 
         return frames
-        
+    def _carregar_frames_animacao(self, quantidade, nome, escala=0.5):
+        spritesheet = pygame.image.load(
+            ENEMY_IMAGES[nome]
+        ).convert_alpha()
+
+        largura_frame = spritesheet.get_width() // quantidade
+        altura_frame = spritesheet.get_height()
+
+        frames = []
+
+        for i in range(quantidade):
+            quadro = spritesheet.subsurface(
+                (
+                    i * largura_frame,
+                    0,
+                    largura_frame,
+                    altura_frame
+                )
+            ).copy()
+
+            quadro = pygame.transform.smoothscale(
+                quadro,
+                (
+                    int(largura_frame * escala),
+                    int(altura_frame * escala)
+                )
+            )
+
+            caminho = f"assets/animacoes/{nome}/{nome}_frame_{i}.png"
+            pygame.image.save(quadro, caminho)
+
+            frames.append(Sprite(caminho))
+
+        return frames
     def _sortear_proximo_pulo(self):
         return pygame.time.get_ticks() + random.randint(
             int(config.ENEMY_LANE_SWITCH_MIN_INTERVAL * 1000),
