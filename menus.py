@@ -70,7 +70,7 @@ def tela_rankings(janela, btn_voltar):
 
 
 def tela_gameover(janela, estado_jogo, imagem_gameover,
-                  btn_reiniciar, btn_menu, pos_rank):
+                  btn_reiniciar, btn_menu):
 
     mx, my = janela.mouse.get_position()
     acao = None
@@ -82,21 +82,6 @@ def tela_gameover(janela, estado_jogo, imagem_gameover,
             acao = "MENU"
 
     imagem_gameover.draw()
-
-    interface.texto_centralizado(
-        janela,
-        f"Onda alcancada: {estado_jogo['rodada']}",
-        config.WINDOW_HEIGHT / 2 - 40,
-        cor="white"
-    )
-
-    if pos_rank is not None:
-        interface.texto_centralizado(
-            janela,
-            f"Posicao no ranking: {pos_rank}o",
-            config.WINDOW_HEIGHT / 2 - 12,
-            cor="white"
-        )
 
     interface.desenhar_botao(
         janela, btn_reiniciar, "Reiniciar", mx, my

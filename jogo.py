@@ -27,6 +27,7 @@ def novo_jogo():
         "carga_pintinho": 0,
         "carga_galo": 0,
         "boss": None,
+        "gameover_chefe": False,
     }
 
 
@@ -113,6 +114,7 @@ def atualizar_boss(estado_jogo):
             return
 
         if boss.chegou_galinheiro and boss.vivo:
+            estado_jogo["gameover_chefe"] = True
             estado_jogo["boss"] = None
             estado_jogo["estado"] = "GAMEOVER"
 def atualizar_spawn(estado_jogo, agora):

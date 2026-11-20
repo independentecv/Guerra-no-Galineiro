@@ -96,6 +96,12 @@ def criar_cenario():
         config.WINDOW_HEIGHT / gameover.height
     )
     gameover.set_position(0, 0)
+    gameover_chefe = Sprite('assets/gameover_chefe.png')
+    gameover_chefe.set_scale(
+        config.WINDOW_WIDTH / gameover_chefe.width,
+        config.WINDOW_HEIGHT / gameover_chefe.height
+    )
+    gameover_chefe.set_position(0, 0)
 
     btn_iniciar = Sprite('assets/botao_acao.png')
     btn_iniciar.set_position(
@@ -235,6 +241,7 @@ def criar_cenario():
         "barra_itens": barra_itens,
         "painel_baixo": painel_baixo,
         "gameover": gameover,
+        "gameover_chefe": gameover_chefe,
         "btn_iniciar": btn_iniciar,
         "btn_reiniciar": btn_reiniciar,
         "btn_menu_gameover": btn_menu_gameover,

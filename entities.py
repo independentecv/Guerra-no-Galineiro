@@ -203,7 +203,8 @@ class Chicken:
         self.frames_ataque = self._carregar_frames_ataque()
         self.indice_frame = 0
         self.atacando = False
-        self.tempo_frame = 100
+        self.tempo_frame_base = 100
+        self.tempo_frame = self.tempo_frame_base
         self.proximo_frame = 0
         self.disparo_realizado = False
         self.sprite.set_position(centro_x - self.sprite.width / 2, centro_y - self.sprite.height / 2)
@@ -267,12 +268,18 @@ class Chicken:
     
     def _recalcular_atributos(self):
         self.dano = config.CHICKEN_DANO + self.nivel_dano * config.UPGRADE_DANO_STEP
+
         self.cooldown_ms = max(
             config.CHICKEN_MIN_COOLDOWN_MS,
             config.CHICKEN_COOLDOWN_MS - self.nivel_atq * config.UPGRADE_ATQ_STEP_MS,
         )
+
         self.vel_ovo = config.CHICKEN_EGG_SPEED_BASE + self.nivel_ovo * config.UPGRADE_OVO_STEP
 
+        self.tempo_frame = max(
+            30,
+            self.tempo_frame_base - self.nivel_atq * 10
+        )
     def nivel_do(self, stat):
         return {"dano": self.nivel_dano, "atq": self.nivel_atq, "ovo": self.nivel_ovo}[stat]
 
@@ -434,6 +441,7 @@ class Chicken:
         if self.selecionada:
             self.sprite_selecao.draw()
         self.sprite.draw()
+
 def redimensionar_ovo(caminho, tamanho):
     imagem = pygame.image.load(caminho).convert_alpha()
 

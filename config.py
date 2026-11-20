@@ -92,7 +92,7 @@ SPAWN_INTERVAL_MS = 1200
 
 # --- Galinha ---
 CHICKEN_DANO = 10
-CHICKEN_COOLDOWN_MS = 1000
+CHICKEN_COOLDOWN_MS = 950
 CHICKEN_ALCANCE = 170
 CHICKEN_EGG_SPEED_BASE = 600
 
@@ -112,7 +112,7 @@ ROUND_CLEAR_BONUS = 20
 
 
 # --- Vidas ---
-MAX_PINTINHOS = 20
+MAX_PINTINHOS = 10
 
 
 # --- Ondas / dificuldade ---
@@ -153,7 +153,7 @@ UPGRADE_COST_INCREMENT = 10
 
 
 # --- Itens especiais ---
-ITEM_DROP_CHANCE = 0.90
+ITEM_DROP_CHANCE = 0.20
 
 ITEM_TYPES = ["podre", "gigante", "chupim", "codorna"]
 

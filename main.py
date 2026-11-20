@@ -40,6 +40,7 @@ painel_topo = elementos["painel_topo"]
 barra_itens = elementos["barra_itens"]
 painel_baixo = elementos["painel_baixo"]
 gameover = elementos["gameover"]
+gameover_chefe = elementos["gameover_chefe"]
 
 btn_iniciar = elementos["btn_iniciar"]
 btn_reiniciar = elementos["btn_reiniciar"]
@@ -125,20 +126,18 @@ while True:
 
     if estado_jogo["estado"] == "GAMEOVER":
 
-        if not estado_jogo["ranking_salvo"]:
-            estado_jogo["posicao_ranking"] = ranking.registrar(
-                estado_jogo["rodada"]
-            )
-
-            estado_jogo["ranking_salvo"] = True
+        imagem_final = (
+            gameover_chefe
+            if estado_jogo["gameover_chefe"]
+            else gameover
+        )
 
         acao = menus.tela_gameover(
             janela,
             estado_jogo,
-            gameover,
+            imagem_final,
             btn_reiniciar,
             btn_menu_gameover,
-            estado_jogo["posicao_ranking"]
         )
 
         if acao == "REINICIAR":
