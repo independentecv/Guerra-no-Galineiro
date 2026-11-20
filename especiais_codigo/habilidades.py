@@ -45,3 +45,31 @@ def ativar_pintinho_por_tecla(estado_jogo, lane, x_pintinho):
     estado_jogo["carga_pintinho"] = 0
 
     return True
+
+DURACAO_CONGELAMENTO_GALO = 2000
+
+
+def ativar_galo(estado_jogo):
+    agora = pygame.time.get_ticks()
+
+    for inimigo in estado_jogo["inimigos"]:
+        if not inimigo.vivo:
+            continue
+
+        inimigo.congelado_ate = (
+            agora + DURACAO_CONGELAMENTO_GALO
+        )
+
+
+def ativar_galo_por_tecla(estado_jogo):
+    if estado_jogo["carga_galo"] < 100:
+        return False
+
+    if not estado_jogo["inimigos"]:
+        return False
+
+    ativar_galo(estado_jogo)
+
+    estado_jogo["carga_galo"] = 0
+
+    return True

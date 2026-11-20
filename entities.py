@@ -9,12 +9,14 @@ ENEMY_IMAGES = {
     "gato": "assets/animacoes/gato/gato.png",
     "gaviao": "assets/animacoes/gaviao/gaviao.png",
     "raposa": "assets/animacoes/raposa/raposa.png",
+    "cobra": "assets/animacoes/cobra/cobra.png",
 }
 
 ENEMY_LABEL = {
     "gato": "Gato",
     "gaviao": "Gaviao",
     "raposa": "Raposa",
+    "cobra": "Cobra"
 }
 
 
@@ -38,7 +40,11 @@ class Enemy:
         elif tipo == "gaviao":
             self.frames_animacao = self._carregar_frames_animacao(7, "gaviao", 0.80)
             self.sprite = self.frames_animacao[0]
-
+        elif tipo == "cobra":
+            self.frames_animacao = self._carregar_frames_animacao(
+                8, "cobra", 1.0
+            )
+            self.sprite = self.frames_animacao[0]
         else:
             self.sprite = Sprite(ENEMY_IMAGES[tipo])
 
@@ -193,6 +199,13 @@ class Chicken:
 
     def __init__(self, centro_x, centro_y):
         self.sprite = Sprite('assets/galinha3.png')
+        self.sprite.set_scale(0.9)
+        self.frames_ataque = self._carregar_frames_ataque()
+        self.indice_frame = 0
+        self.atacando = False
+        self.tempo_frame = 100
+        self.proximo_frame = 0
+        self.disparo_realizado = False
         self.sprite.set_position(centro_x - self.sprite.width / 2, centro_y - self.sprite.height / 2)
 
         self.centro_x = centro_x
@@ -221,7 +234,37 @@ class Chicken:
             centro_x - self.sprite_selecao.width / 2,
             centro_y - self.sprite_selecao.height / 2,
         )
+    def _carregar_frames_ataque(self):
+        caminho = "assets/animacoes/galinha/galinha_attack.png"
 
+        spritesheet = pygame.image.load(caminho).convert_alpha()
+
+        quantidade = 8
+        largura_frame = spritesheet.get_width() // quantidade
+        altura_frame = spritesheet.get_height()
+
+        frames = []
+
+        for i in range(quantidade):
+            quadro = spritesheet.subsurface(
+                (i * largura_frame, 0, largura_frame, altura_frame)
+            ).copy()
+
+            quadro = pygame.transform.smoothscale(
+                quadro,
+                (
+                    int(largura_frame * 0.9),
+                    int(altura_frame * 0.9)
+                )
+            )
+
+            caminho_frame = f"assets/animacoes/galinha/galinha_attack_frame_{i}.png"
+            pygame.image.save(quadro, caminho_frame)
+
+            frames.append(Sprite(caminho_frame))
+
+        return frames
+    
     def _recalcular_atributos(self):
         self.dano = config.CHICKEN_DANO + self.nivel_dano * config.UPGRADE_DANO_STEP
         self.cooldown_ms = max(
@@ -288,40 +331,102 @@ class Chicken:
         "gigante": 'assets/ovo_gigante.png',
         "chupim": 'assets/ovo_chupim.png',
     }
-
-    def update(self, inimigos, ovos):
-        agora = pygame.time.get_ticks()
-        if agora < self._proximo_tiro:
-            return
-
+    def _realizar_disparo(self, inimigos, ovos):
         item = self.item_equipado
 
         if item == "codorna":
-            alvos = self._encontrar_varios_alvos(inimigos, config.CODORNA_QTD_OVOS)
+            alvos = self._encontrar_varios_alvos(
+                inimigos,
+                config.CODORNA_QTD_OVOS
+            )
+
             if not alvos:
-                return
+                return False
 
             for alvo in alvos:
                 ovos.append(Egg(
-                    self.centro_x, self.centro_y, alvo,
+                    self.centro_x,
+                    self.centro_y,
+                    alvo,
                     self.dano * config.CODORNA_DANO_MULT,
                     self.vel_ovo * config.CODORNA_VEL_MULT,
                     tipo_especial="codorna",
                     sprite_path='assets/ovo_codorna.png',
                 ))
+
         else:
             alvo = self._encontrar_alvo(inimigos)
+
             if alvo is None:
-                return
-            dano_final = self.dano * config.GIGANTE_DANO_MULT if item == "gigante" else self.dano
+                return False
+
+            dano_final = (
+                self.dano * config.GIGANTE_DANO_MULT
+                if item == "gigante" else self.dano
+            )
+
             ovos.append(Egg(
-                self.centro_x, self.centro_y, alvo, dano_final, self.vel_ovo,
-                tipo_especial=item, sprite_path=self._SPRITE_POR_ITEM[item],
+                self.centro_x,
+                self.centro_y,
+                alvo,
+                dano_final,
+                self.vel_ovo,
+                tipo_especial=item,
+                sprite_path=self._SPRITE_POR_ITEM[item],
             ))
 
-        self.item_equipado = None  # o item só afeta o disparo que acabou de sair
-        self._proximo_tiro = agora + self.cooldown_ms
+        self.item_equipado = None
+        self._proximo_tiro = pygame.time.get_ticks() + self.cooldown_ms
 
+        return True
+    def update(self, inimigos, ovos):
+        agora = pygame.time.get_ticks()
+
+        if self.atacando:
+            if agora >= self.proximo_frame:
+                self.indice_frame += 1
+
+                if self.indice_frame == 2 and not self.disparo_realizado:
+                    self._realizar_disparo(inimigos, ovos)
+                    self.disparo_realizado = True
+
+                if self.indice_frame >= len(self.frames_ataque):
+                    self.atacando = False
+                    self.sprite = Sprite('assets/galinha3.png')
+                    self.sprite.set_scale(0.9)
+                    self.sprite.set_position(
+                        self.centro_x - self.sprite.width / 2,
+                        self.centro_y - self.sprite.height / 2
+                    )
+                    return
+
+                self.sprite = self.frames_ataque[self.indice_frame]
+                self.sprite.set_position(
+                    self.centro_x - self.sprite.width / 2,
+                    self.centro_y - self.sprite.height / 2
+                )
+
+                self.proximo_frame = agora + self.tempo_frame
+
+            return
+
+        if agora < self._proximo_tiro:
+            return
+
+        alvo = self._encontrar_alvo(inimigos)
+
+        if alvo is None:
+            return
+
+        self.atacando = True
+        self.indice_frame = 0
+        self.disparo_realizado = False
+        self.sprite = self.frames_ataque[0]
+        self.sprite.set_position(
+            self.centro_x - self.sprite.width / 2,
+            self.centro_y - self.sprite.height / 2
+        )
+        self.proximo_frame = agora + self.tempo_frame
     def draw_alcance(self):
         self.sprite_alcance.draw()
 
@@ -412,7 +517,6 @@ class Egg:
 
 
 class Puddle:
-    
 
     def __init__(self, x, y):
         self.x = x
@@ -421,21 +525,86 @@ class Puddle:
         self.expira_em = pygame.time.get_ticks() + config.PODRE_DURACAO_MS
         self._ja_atingiu = set()
 
-        self.sprite = Sprite('assets/poca_podre.png')
-        self.sprite.set_position(x - self.sprite.width / 2, y - self.sprite.height / 2)
+        self.frames = self._carregar_frames()
+        self.indice_frame = 0
+        self.sprite = self.frames[0]
+
+        self.tempo_frame = 120
+        self.proximo_frame = pygame.time.get_ticks() + self.tempo_frame
+
+        self.sprite.set_position(
+            x - self.sprite.width / 2,
+            y - self.sprite.height / 2 - 10
+        )
+
+    def _carregar_frames(self):
+        caminho = "assets/effects/poca.png"
+
+        spritesheet = pygame.image.load(caminho).convert_alpha()
+
+        quantidade = 12
+        largura_frame = spritesheet.get_width() // quantidade
+        altura_frame = spritesheet.get_height()
+
+        frames = []
+
+        for i in range(quantidade):
+            quadro = spritesheet.subsurface(
+                (
+                    i * largura_frame,
+                    0,
+                    largura_frame,
+                    altura_frame
+                )
+            ).copy()
+
+            quadro = pygame.transform.smoothscale(
+                quadro,
+                (
+                    int(largura_frame * 2.5),
+                    int(altura_frame * 2.5)
+                )
+            )
+
+            caminho_frame = f"assets/effects/poca_frame_{i}.png"
+            pygame.image.save(quadro, caminho_frame)
+
+            frames.append(Sprite(caminho_frame))
+
+        return frames
+
+    def update(self):
+        agora = pygame.time.get_ticks()
+
+        if agora >= self.proximo_frame:
+            x = self.sprite.x
+            y = self.sprite.y
+
+            self.indice_frame = (
+                self.indice_frame + 1
+            ) % len(self.frames)
+
+            self.sprite = self.frames[self.indice_frame]
+            self.sprite.set_position(x, y)
+
+            self.proximo_frame = agora + self.tempo_frame
 
     def expirou(self):
         return pygame.time.get_ticks() >= self.expira_em
 
     def afeta(self, inimigo):
-        """Retorna True se o inimigo está dentro da poça agora (e aplica o
-        dano de entrada uma única vez por inimigo)."""
         ex = inimigo.sprite.x + inimigo.sprite.width / 2
         ey = inimigo.sprite.y + inimigo.sprite.height / 2
-        dentro = ((ex - self.x) ** 2 + (ey - self.y) ** 2) ** 0.5 <= self.raio
+
+        dentro = (
+            ((ex - self.x) ** 2 + (ey - self.y) ** 2) ** 0.5
+            <= self.raio
+        )
+
         if dentro and id(inimigo) not in self._ja_atingiu:
             inimigo.hp -= config.PODRE_DANO_ENTRADA
             self._ja_atingiu.add(id(inimigo))
+
         return dentro
 
     def draw(self):

@@ -5,7 +5,7 @@ import random
 import config
 from entities import Enemy
 from entities import Enemy, Chicken
-
+from boss import BossFazendeiro
 
 
 def novo_jogo():
@@ -26,6 +26,7 @@ def novo_jogo():
         "posicao_ranking": None,
         "carga_pintinho": 0,
         "carga_galo": 0,
+        "boss": None,
     }
 
 
@@ -40,12 +41,12 @@ def matar_inimigo(inimigo, estado_jogo, lista_remocao):
 
     estado_jogo["carga_pintinho"] = min(
         100,
-        estado_jogo["carga_pintinho"] + 6
+        estado_jogo["carga_pintinho"] + 100
     )
 
     estado_jogo["carga_galo"] = min(
         100,
-        estado_jogo["carga_galo"] + 6
+        estado_jogo["carga_galo"] + 100
     )
 
     if random.random() < config.ITEM_DROP_CHANCE:
@@ -62,23 +63,32 @@ def resetar_partida(ninhos, galinhas):
     return novo_jogo()
 
 def iniciar_onda(estado_jogo, agora):
-    tipos = config.tipos_disponiveis_na_rodada(
-        estado_jogo["rodada"]
-    )
+    if estado_jogo["rodada"] == 7:
+        estado_jogo["fila_spawn"] = []
+        estado_jogo["inimigos"] = []
+        estado_jogo["boss"] = BossFazendeiro()
+    else:
+        tipos = config.tipos_disponiveis_na_rodada(estado_jogo["rodada"])
 
-    qtde = (
-        config.WAVE_BASE_ENEMIES
-        + (estado_jogo["rodada"] - 1)
-        * config.WAVE_ENEMIES_INCREMENT
-    )
+        qtde = config.WAVE_BASE_ENEMIES + (
+            estado_jogo["rodada"] - 1
+        ) * config.WAVE_ENEMIES_INCREMENT
 
-    estado_jogo["fila_spawn"] = [
-        random.choice(tipos) for _ in range(qtde)
-    ]
+        estado_jogo["fila_spawn"] = [
+            random.choice(tipos) for _ in range(qtde)
+        ]
 
     estado_jogo["proximo_spawn"] = agora
     estado_jogo["estado"] = "ONDA"
+def atualizar_boss(estado_jogo):
+    boss = estado_jogo["boss"]
 
+    if boss is not None:
+        boss.update()
+
+        if boss.chegou_galinheiro:
+            estado_jogo["boss"] = None
+            estado_jogo["estado"] = "GAMEOVER"
 def atualizar_spawn(estado_jogo, agora):
     if estado_jogo["fila_spawn"] and agora >= estado_jogo["proximo_spawn"]:
         tipo = estado_jogo["fila_spawn"].pop(0)
@@ -99,6 +109,7 @@ def atualizar_spawn(estado_jogo, agora):
             agora + config.WAVE_SPAWN_INTERVAL_MS
         )
 
+
 def atualizar_inimigos(estado_jogo):
     estado_jogo["pocas"] = [
         p for p in estado_jogo["pocas"] if not p.expirou()
@@ -107,6 +118,11 @@ def atualizar_inimigos(estado_jogo):
     remocao_ondas = []
     multiplicadores = {}
 
+    agora = pygame.time.get_ticks()
+
+    for poca in estado_jogo["pocas"]:
+        poca.update()
+
     for inimigo in estado_jogo["inimigos"]:
         mult = 1.0
 
@@ -114,10 +130,11 @@ def atualizar_inimigos(estado_jogo):
             if poca.afeta(inimigo):
                 mult = min(mult, config.PODRE_SLOW_MULT)
 
-        agora = pygame.time.get_ticks()
-
         if agora < getattr(inimigo, "lentidao_pintinho_ate", 0):
             mult = min(mult, 0.5)
+
+        if agora < getattr(inimigo, "congelado_ate", 0):
+            mult = 0
 
         multiplicadores[id(inimigo)] = mult
 
@@ -148,6 +165,7 @@ def verificar_fim_onda(estado_jogo):
         estado_jogo["estado"] == "ONDA"
         and not estado_jogo["fila_spawn"]
         and not estado_jogo["inimigos"]
+        and estado_jogo["boss"] is None
     ):
         estado_jogo["estado"] = "COMPRA"
         estado_jogo["sementes"] += config.ROUND_CLEAR_BONUS
@@ -273,7 +291,13 @@ def atualizar_ovos(estado_jogo, agora):
             if Collision.collided(ovo.sprite, inimigo.sprite):
                 atingiu = inimigo
                 break
+            if atingiu is None and estado_jogo["boss"] is not None:
+                boss = estado_jogo["boss"]
 
+                if Collision.collided(ovo.sprite, boss.sprite):
+                    boss.receber_dano(ovo.dano)
+                    ovos_para_remover.append(ovo)
+                    continue
         if atingiu is not None:
             atingiu.hp -= ovo.dano
             ovos_para_remover.append(ovo)
@@ -301,7 +325,16 @@ def atualizar_ovos(estado_jogo, agora):
 
             elif ovo.tipo_especial == "podre":
                 hit_x, hit_y = ovo.centro()
-                estado_jogo["pocas"].append(Puddle(hit_x, hit_y))
+
+                y_linha = min(
+                    range(config.NUM_LANES),
+                    key=lambda i: abs(config.lane_y_center(i) - hit_y)
+                )
+                y_linha = config.lane_y_center(y_linha)
+                if y_linha == config.lane_y_center(2):
+                    y_linha -= 5
+
+                estado_jogo["pocas"].append(Puddle(hit_x, y_linha))
 
             elif ovo.tipo_especial == "chupim":
                 atingiu.confuso_ate = (

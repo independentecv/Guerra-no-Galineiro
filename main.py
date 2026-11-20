@@ -62,7 +62,8 @@ teclas_anteriores = {
     pygame.K_1: False,
     pygame.K_2: False,
     pygame.K_3: False,
-    pygame.K_SPACE: False
+    pygame.K_SPACE: False,
+    pygame.K_g: False
 }
 
 while True:
@@ -74,7 +75,7 @@ while True:
     tecla_2 = teclas[pygame.K_2] and not teclas_anteriores[pygame.K_2]
     tecla_3 = teclas[pygame.K_3] and not teclas_anteriores[pygame.K_3]
     tecla_espaco = teclas[pygame.K_SPACE] and not teclas_anteriores[pygame.K_SPACE]
-
+    tecla_g = teclas[pygame.K_g] and not teclas_anteriores[pygame.K_g]
     for tecla in teclas_anteriores:
         teclas_anteriores[tecla] = teclas[tecla]
 
@@ -149,16 +150,26 @@ while True:
     if tecla_3:
         lane_pintinho = 2
     if tecla_espaco and estado_jogo["estado"] == "ONDA":
-        pintinho.set_position(
-            config.WINDOW_WIDTH - pintinho.sprite.width - 90,
-            config.lane_y_center(lane_pintinho) - pintinho.sprite.height / 2 -15
-        )
-
-        habilidades.ativar_pintinho_por_tecla(
+        ativou = habilidades.ativar_pintinho_por_tecla(
             estado_jogo,
             lane_pintinho,
-            pintinho.sprite.x
-        )    
+            config.WINDOW_WIDTH - pintinho.sprite.width - 110
+        )
+
+        if ativou:
+            pintinho.ativar(
+                config.WINDOW_WIDTH - pintinho.sprite.width - 110,
+                config.lane_y_center(lane_pintinho) - pintinho.sprite.height / 2 - 15
+            )
+
+    if tecla_g and estado_jogo["estado"] == "ONDA":
+        ativou = habilidades.ativar_galo_por_tecla(estado_jogo)
+
+        if ativou:
+            galo.ativar(
+            (config.WINDOW_WIDTH - galo.sprite.width) / 2,
+            (config.WINDOW_HEIGHT - galo.sprite.height) / 2 - 50
+        )
     if estado_jogo["estado"] == "COMPRA":
 
         if janela.mouse.button_down(1):
@@ -172,6 +183,7 @@ while True:
         jogo.atualizar_spawn(estado_jogo, agora)
 
     jogo.atualizar_inimigos(estado_jogo)
+    jogo.atualizar_boss(estado_jogo)
 
     jogo.verificar_fim_onda(estado_jogo)
 
@@ -217,6 +229,8 @@ while True:
         barra_itens_y,
         painel_baixo_y
     )
+    if estado_jogo["boss"] is not None:
+        estado_jogo["boss"].draw()
     galo.draw()
     pintinho.draw()
     janela.draw_text(
