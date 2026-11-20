@@ -12,6 +12,7 @@ import cenario
 from especiais_codigo.galo import Galo
 from especiais_codigo.pintinho import Pintinho
 import especiais_codigo.habilidades as habilidades
+import efeitos
 
 cenario.configurar_alturas()
 
@@ -65,6 +66,13 @@ teclas_anteriores = {
     pygame.K_SPACE: False,
     pygame.K_g: False
 }
+rodada_anterior = None
+estado_anterior = None
+boss_anterior = False
+
+tremida_ate = 0
+DURACAO_TREMIDA = 1000
+INTENSIDADE_TREMIDA = 16
 
 while True:
 
@@ -213,11 +221,54 @@ while True:
         estado_jogo,
         agora
     )
+    agora = pygame.time.get_ticks()
+
+    boss_atual = estado_jogo["boss"] is not None
+
+    if rodada_anterior is not None:
+
+        if (
+            rodada_anterior == 6
+            and estado_jogo["rodada"] == 7
+            and estado_jogo["estado"] == "COMPRA"
+        ):
+            tremida_ate = agora + DURACAO_TREMIDA
+
+        elif (
+            rodada_anterior == 7
+            and estado_jogo["rodada"] == 7
+            and estado_anterior == "COMPRA"
+            and estado_jogo["estado"] == "ONDA"
+        ):
+            tremida_ate = agora + DURACAO_TREMIDA
+
+        elif (
+            boss_anterior
+            and not boss_atual
+            and estado_jogo["rodada"] == 8
+            and estado_jogo["estado"] == "COMPRA"
+        ):
+            tremida_ate = agora + DURACAO_TREMIDA
+
+    rodada_anterior = estado_jogo["rodada"]
+    estado_anterior = estado_jogo["estado"]
+    boss_anterior = boss_atual
     galo.update()
     pintinho.update()
+    if estado_jogo["rodada"] < 7:
+        background_atual = elementos["background"]
+
+    elif estado_jogo["rodada"] == 7:
+        if estado_jogo["estado"] == "COMPRA":
+            background_atual = elementos["background_medio"]
+        else:
+            background_atual = elementos["background_escuro"]
+
+    else:
+        background_atual = elementos["background"]
     interface.desenhar_cenario(
         janela,
-        background,
+        background_atual,
         estado_jogo,
         galinhas,
         painel_topo,
@@ -233,6 +284,7 @@ while True:
         estado_jogo["boss"].draw()
     galo.draw()
     pintinho.draw()
+
     janela.draw_text(
         f"PINTINHO: {estado_jogo['carga_pintinho']}%",
         20, 20, tamanho=18, cor="yellow"
@@ -242,4 +294,22 @@ while True:
         f"GALO: {estado_jogo['carga_galo']}%",
         20, 45, tamanho=18, cor="white"
     )
+
+    agora = pygame.time.get_ticks()
+    
+
+    if agora < tremida_ate:
+        restante = tremida_ate - agora
+
+        intensidade = max(
+            1,
+            int(INTENSIDADE_TREMIDA * restante / DURACAO_TREMIDA)
+        )
+
+        efeitos.aplicar_tremida(intensidade)
+
     janela.update()
+
+    if pygame.time.get_ticks() < tremida_ate:
+        efeitos.aplicar_tremida(8)
+        pygame.display.flip()

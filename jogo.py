@@ -84,9 +84,35 @@ def atualizar_boss(estado_jogo):
     boss = estado_jogo["boss"]
 
     if boss is not None:
+        quantidades = [2, 3, 2]
+
+        while boss.ataques_com_spawn < len(boss.ataques_realizados):
+            indice = boss.ataques_com_spawn
+
+            if indice < len(quantidades):
+                quantidade = quantidades[indice]
+                tipos = config.tipos_disponiveis_na_rodada(7)
+
+                for _ in range(quantidade):
+                    tipo = random.choice(tipos)
+                    estado_jogo["fila_spawn"].append(tipo)
+
+            boss.ataques_com_spawn += 1
+
         boss.update()
 
-        if boss.chegou_galinheiro:
+        if boss.derrota_finalizada:
+            estado_jogo["boss"] = None
+            estado_jogo["estado"] = "COMPRA"
+            estado_jogo["sementes"] += config.ROUND_CLEAR_BONUS
+            estado_jogo["rodada"] += 1
+            estado_jogo["pintinhos"] = min(
+                config.MAX_PINTINHOS,
+                estado_jogo["pintinhos"] + 1
+            )
+            return
+
+        if boss.chegou_galinheiro and boss.vivo:
             estado_jogo["boss"] = None
             estado_jogo["estado"] = "GAMEOVER"
 def atualizar_spawn(estado_jogo, agora):
@@ -269,11 +295,19 @@ def tratar_cliques(
                 break
 
 def atualizar_galinhas(galinhas, estado_jogo):
+    alvos = estado_jogo["inimigos"].copy()
+
+    boss = estado_jogo["boss"]
+
+    if boss is not None and boss.vivo and not boss.atacando:
+        alvos.append(boss)
+
     for galinha in galinhas:
         galinha.update(
-            estado_jogo["inimigos"],
+            alvos,
             estado_jogo["ovos"]
         )
+
 
 def atualizar_ovos(estado_jogo, agora):
     ovos_para_remover = []
@@ -281,7 +315,11 @@ def atualizar_ovos(estado_jogo, agora):
 
     for ovo in estado_jogo["ovos"]:
         ovo.update()
+        boss = estado_jogo["boss"]
 
+        if boss is not None and boss.atacando and ovo.alvo is boss:
+            ovos_para_remover.append(ovo)
+            continue
         atingiu = None
 
         for inimigo in estado_jogo["inimigos"]:
@@ -291,13 +329,7 @@ def atualizar_ovos(estado_jogo, agora):
             if Collision.collided(ovo.sprite, inimigo.sprite):
                 atingiu = inimigo
                 break
-            if atingiu is None and estado_jogo["boss"] is not None:
-                boss = estado_jogo["boss"]
 
-                if Collision.collided(ovo.sprite, boss.sprite):
-                    boss.receber_dano(ovo.dano)
-                    ovos_para_remover.append(ovo)
-                    continue
         if atingiu is not None:
             atingiu.hp -= ovo.dano
             ovos_para_remover.append(ovo)
@@ -331,26 +363,33 @@ def atualizar_ovos(estado_jogo, agora):
                     key=lambda i: abs(config.lane_y_center(i) - hit_y)
                 )
                 y_linha = config.lane_y_center(y_linha)
+
                 if y_linha == config.lane_y_center(2):
                     y_linha -= 5
 
                 estado_jogo["pocas"].append(Puddle(hit_x, y_linha))
 
             elif ovo.tipo_especial == "chupim":
-                atingiu.confuso_ate = (
-                    agora + config.CHUPIM_DURACAO_MS
-                )
+                atingiu.confuso_ate = agora + config.CHUPIM_DURACAO_MS
 
             if atingiu.hp <= 0:
                 matar_inimigo(
                     atingiu, estado_jogo, remocao_combate
                 )
 
+        elif estado_jogo["boss"] is not None:
+            boss = estado_jogo["boss"]
+
+            if boss.vivo and not boss.atacando and Collision.collided(ovo.sprite, boss.sprite):
+                boss.receber_dano(ovo.dano)
+                ovos_para_remover.append(ovo)
+
         elif ovo.fora_da_tela():
             ovos_para_remover.append(ovo)
 
     for ovo in ovos_para_remover:
-        estado_jogo["ovos"].remove(ovo)
+        if ovo in estado_jogo["ovos"]:
+            estado_jogo["ovos"].remove(ovo)
 
     for inimigo in remocao_combate:
         if inimigo in estado_jogo["inimigos"]:

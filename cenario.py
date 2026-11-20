@@ -15,22 +15,36 @@ def configurar_alturas():
 
 
 def criar_cenario():
-    imagem_fundo = pygame.image.load(
-        'assets/background2.png'
-    ).convert_alpha()
+    def criar_background(caminho, destino):
+        imagem = pygame.image.load(caminho).convert_alpha()
 
-    imagem_fundo = pygame.transform.smoothscale(
-        imagem_fundo,
-        (config.WINDOW_WIDTH, config.PLAYFIELD_HEIGHT)
+        imagem = pygame.transform.smoothscale(
+            imagem,
+            (config.WINDOW_WIDTH, config.PLAYFIELD_HEIGHT)
+        )
+
+        pygame.image.save(imagem, destino)
+
+        background = Sprite(destino)
+        background.set_position(0, config.PLAYFIELD_Y)
+
+        return background
+
+
+    background = criar_background(
+        'assets/background2.png',
+        'assets/background_normal_redimensionado.png'
     )
 
-    pygame.image.save(
-        imagem_fundo,
-        'assets/background2_redimensionado.png'
+    background_medio = criar_background(
+        'assets/mapa_medio.png',
+        'assets/mapa_medio_redimensionado.png'
     )
 
-    background = Sprite('assets/background2_redimensionado.png')
-    background.set_position(0, config.PLAYFIELD_Y)
+    background_escuro = criar_background(
+        'assets/mapa_escuro.png',
+        'assets/mapa_escuro_redimensionado.png'
+    )
 
     ninhos = []
 
@@ -214,6 +228,8 @@ def criar_cenario():
 
     return {
         "background": background,
+        "background_medio": background_medio,
+        "background_escuro": background_escuro,
         "ninhos": ninhos,
         "painel_topo": painel_topo,
         "barra_itens": barra_itens,

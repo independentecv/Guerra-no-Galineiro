@@ -27,6 +27,34 @@ class BossFazendeiro:
         os.makedirs(pasta_ataque, exist_ok=True)
 
         self.frames_ataque = []
+        caminho_derrota = "assets/animacoes/boss/fazendeiro_derrota.png"
+        imagem_derrota = pygame.image.load(caminho_derrota).convert_alpha()
+
+        largura_derrota = imagem_derrota.get_width() // 16
+        altura_derrota = imagem_derrota.get_height()
+
+        pasta_derrota = "assets/animacoes/boss/frames_derrota"
+        os.makedirs(pasta_derrota, exist_ok=True)
+
+        self.frames_derrota = []
+
+        for i in range(16):
+            frame = imagem_derrota.subsurface(
+                (i * largura_derrota, 0, largura_derrota, altura_derrota)
+            ).copy()
+
+            frame = pygame.transform.scale_by(frame, 0.7)
+
+            caminho_frame = f"{pasta_derrota}/frame_{i}.png"
+            pygame.image.save(frame, caminho_frame)
+            self.frames_derrota.append(caminho_frame)
+
+        self.derrotado = False
+        self.indice_derrota = 0
+        self.tempo_frame_derrota = 100
+        self.proximo_frame_derrota = 0
+        self.ataques_com_spawn = 0
+        self.derrota_finalizada = False
 
         for i in range(12):
             frame = imagem_ataque.subsurface(
@@ -67,16 +95,26 @@ class BossFazendeiro:
         self.y = config.lane_y_center(self.lane) - self.sprite.height / 2
         self.vida_maxima = 500
         self.vida = self.vida_maxima
+        self.vivo = True
         self.velocidade = 45
         self.ultimo_update = pygame.time.get_ticks()
         self.sprite.set_position(self.x, self.y)
         self.chegou_galinheiro = False
     def receber_dano(self, dano):
+        if not self.vivo or self.atacando:
+            return
+
         self.vida -= dano
 
-        if self.vida < 0:
+        if self.vida <= 0:
             self.vida = 0
-
+            self.vivo = False
+            self.derrotado = True
+            self.indice_derrota = 0
+            self.proximo_frame_derrota = pygame.time.get_ticks()
+            self.sprite = Sprite(self.frames_derrota[0])
+            self.sprite.set_position(self.x, self.y)
+            return
         porcentagem = (self.vida / self.vida_maxima) * 100
 
         for marco in self.marcos_ataque:
@@ -87,7 +125,10 @@ class BossFazendeiro:
     def iniciar_ataque(self):
         self.atacando = True
         self.indice_ataque = 0
-        self.proximo_frame_ataque = pygame.time.get_ticks()
+
+        agora = pygame.time.get_ticks()
+        self.proximo_frame_ataque = agora
+        self.ultimo_update = agora
 
         self.sprite = Sprite(self.frames_ataque[0])
         self.sprite.set_position(self.x, self.y)
@@ -110,9 +151,28 @@ class BossFazendeiro:
         )        
     def update(self):
         agora = pygame.time.get_ticks()
+        if self.derrotado:
+            agora = pygame.time.get_ticks()
 
-        agora = pygame.time.get_ticks()
+            if agora >= self.proximo_frame_derrota:
+                self.indice_derrota += 1
+
+                if self.indice_derrota >= len(self.frames_derrota):
+                    self.derrota_finalizada = True
+                    return
+
+                self.sprite = Sprite(
+                    self.frames_derrota[self.indice_derrota]
+                )
+                self.sprite.set_position(self.x, self.y)
+
+                self.proximo_frame_derrota = agora + self.tempo_frame_derrota
+
+            return
+
         if self.atacando:
+            self.ultimo_update = agora
+
             if agora >= self.proximo_frame_ataque:
                 self.indice_ataque += 1
 
@@ -120,6 +180,7 @@ class BossFazendeiro:
                     self.atacando = False
                     self.indice_frame = 0
                     self.sprite = Sprite(self.frames[0])
+                    self.ultimo_update = agora
                 else:
                     self.sprite = Sprite(
                         self.frames_ataque[self.indice_ataque]
@@ -129,6 +190,7 @@ class BossFazendeiro:
 
             self.sprite.set_position(self.x, self.y)
             return
+
         delta = (agora - self.ultimo_update) / 1000
         self.ultimo_update = agora
 
@@ -140,9 +202,13 @@ class BossFazendeiro:
             self.proximo_frame = agora + self.tempo_frame
 
         self.sprite.set_position(self.x, self.y)
+
         if self.x + self.sprite.width >= config.GALINHEIRO_X:
             self.chegou_galinheiro = True
 
     def draw(self):
-        self.sprite.draw()
-        self.desenhar_vida()
+        if not self.derrota_finalizada:
+            self.sprite.draw()
+
+            if not self.derrotado:
+                self.desenhar_vida()
