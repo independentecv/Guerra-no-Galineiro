@@ -104,8 +104,8 @@ MAX_PINTINHOS = 20
 # --- Ondas / dificuldade (Fase 4) ---
 WAVE_BASE_ENEMIES = 2
 WAVE_ENEMIES_INCREMENT = 2             # inimigos a mais por rodada
-WAVE_SPAWN_INTERVAL_MS = 900
-WAVE_STAT_MULTIPLIER_PER_ROUND = 0.08  # +8% HP e velocidade dos inimigos por rodada
+WAVE_SPAWN_INTERVAL_MS = 800
+WAVE_STAT_MULTIPLIER_PER_ROUND = 0.09  # +9% HP e velocidade dos inimigos por rodada
 
 
 def tipos_disponiveis_na_rodada(rodada):

@@ -24,6 +24,8 @@ def novo_jogo():
         "galinha_selecionada": None,
         "ranking_salvo": False,
         "posicao_ranking": None,
+        "carga_pintinho": 0,
+        "carga_galo": 0,
     }
 
 
@@ -36,10 +38,19 @@ def matar_inimigo(inimigo, estado_jogo, lista_remocao):
 
     estado_jogo["sementes"] += config.ENEMY_DROP[inimigo.tipo]
 
+    estado_jogo["carga_pintinho"] = min(
+        100,
+        estado_jogo["carga_pintinho"] + 6
+    )
+
+    estado_jogo["carga_galo"] = min(
+        100,
+        estado_jogo["carga_galo"] + 6
+    )
+
     if random.random() < config.ITEM_DROP_CHANCE:
         tipo_item = random.choice(config.ITEM_TYPES)
         estado_jogo["inventario"][tipo_item] += 1
-
 
 def resetar_partida(ninhos, galinhas):
     for ninho in ninhos:
@@ -102,6 +113,11 @@ def atualizar_inimigos(estado_jogo):
         for poca in estado_jogo["pocas"]:
             if poca.afeta(inimigo):
                 mult = min(mult, config.PODRE_SLOW_MULT)
+
+        agora = pygame.time.get_ticks()
+
+        if agora < getattr(inimigo, "lentidao_pintinho_ate", 0):
+            mult = min(mult, 0.5)
 
         multiplicadores[id(inimigo)] = mult
 

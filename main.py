@@ -10,6 +10,8 @@ import menus
 import jogo
 import cenario
 from especiais_codigo.galo import Galo
+from especiais_codigo.pintinho import Pintinho
+import especiais_codigo.habilidades as habilidades
 
 cenario.configurar_alturas()
 
@@ -21,6 +23,8 @@ janela = Window(
 
 galo = Galo()
 galo.set_position(450, 250)
+pintinho = Pintinho()
+pintinho.set_position(450, 350)
 
 elementos = cenario.criar_cenario()
 barra_itens_y = elementos["barra_itens_y"]
@@ -52,11 +56,27 @@ galinhas = []
 estado_jogo = jogo.resetar_partida(ninhos, galinhas)
 
 tela = "MENU"
+lane_pintinho = 0
 
+teclas_anteriores = {
+    pygame.K_1: False,
+    pygame.K_2: False,
+    pygame.K_3: False,
+    pygame.K_SPACE: False
+}
 
 while True:
 
     agora = pygame.time.get_ticks()
+    teclas = pygame.key.get_pressed()
+
+    tecla_1 = teclas[pygame.K_1] and not teclas_anteriores[pygame.K_1]
+    tecla_2 = teclas[pygame.K_2] and not teclas_anteriores[pygame.K_2]
+    tecla_3 = teclas[pygame.K_3] and not teclas_anteriores[pygame.K_3]
+    tecla_espaco = teclas[pygame.K_SPACE] and not teclas_anteriores[pygame.K_SPACE]
+
+    for tecla in teclas_anteriores:
+        teclas_anteriores[tecla] = teclas[tecla]
 
     if tela == "MENU":
 
@@ -120,7 +140,25 @@ while True:
 
         janela.update()
         continue
+    if tecla_1:
+        lane_pintinho = 0
 
+    if tecla_2:
+        lane_pintinho = 1
+
+    if tecla_3:
+        lane_pintinho = 2
+    if tecla_espaco and estado_jogo["estado"] == "ONDA":
+        pintinho.set_position(
+            config.WINDOW_WIDTH - pintinho.sprite.width - 90,
+            config.lane_y_center(lane_pintinho) - pintinho.sprite.height / 2 -15
+        )
+
+        habilidades.ativar_pintinho_por_tecla(
+            estado_jogo,
+            lane_pintinho,
+            pintinho.sprite.x
+        )    
     if estado_jogo["estado"] == "COMPRA":
 
         if janela.mouse.button_down(1):
@@ -164,6 +202,7 @@ while True:
         agora
     )
     galo.update()
+    pintinho.update()
     interface.desenhar_cenario(
         janela,
         background,
@@ -179,4 +218,14 @@ while True:
         painel_baixo_y
     )
     galo.draw()
+    pintinho.draw()
+    janela.draw_text(
+        f"PINTINHO: {estado_jogo['carga_pintinho']}%",
+        20, 20, tamanho=18, cor="yellow"
+    )
+
+    janela.draw_text(
+        f"GALO: {estado_jogo['carga_galo']}%",
+        20, 45, tamanho=18, cor="white"
+    )
     janela.update()
