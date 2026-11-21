@@ -3,13 +3,15 @@ from PPlay.collision import Collision
 from entities import Enemy, Chicken, Puddle
 import random
 import config
-from entities import Enemy
-from entities import Enemy, Chicken
 from boss import BossFazendeiro
+
+
 som_galinha = pygame.mixer.Sound("sounds/popopo.mp3")
 som_ovo_quebrando = pygame.mixer.Sound("sounds/ovo_quebrando.mp3")
+
 som_galinha.set_volume(0.7)
-som_ovo_quebrando.set_volume(0.3)
+som_ovo_quebrando.set_volume(0.15)
+
 
 def novo_jogo():
     return {
@@ -31,6 +33,8 @@ def novo_jogo():
         "carga_galo": 0,
         "boss": None,
         "gameover_chefe": False,
+        "proxima_rodada_chefe": 7,
+        "aparicoes_chefe": 0,
     }
 
 
@@ -57,6 +61,7 @@ def matar_inimigo(inimigo, estado_jogo, lista_remocao):
         tipo_item = random.choice(config.ITEM_TYPES)
         estado_jogo["inventario"][tipo_item] += 1
 
+
 def resetar_partida(ninhos, galinhas):
     for ninho in ninhos:
         ninho["ocupado"] = False
@@ -66,13 +71,22 @@ def resetar_partida(ninhos, galinhas):
 
     return novo_jogo()
 
+
 def iniciar_onda(estado_jogo, agora):
-    if estado_jogo["rodada"] == 7:
+    if estado_jogo["rodada"] == estado_jogo["proxima_rodada_chefe"]:
         estado_jogo["fila_spawn"] = []
         estado_jogo["inimigos"] = []
-        estado_jogo["boss"] = BossFazendeiro()
+
+        estado_jogo["aparicoes_chefe"] += 1
+
+        estado_jogo["boss"] = BossFazendeiro(
+            estado_jogo["aparicoes_chefe"]
+        )
+
     else:
-        tipos = config.tipos_disponiveis_na_rodada(estado_jogo["rodada"])
+        tipos = config.tipos_disponiveis_na_rodada(
+            estado_jogo["rodada"]
+        )
 
         qtde = config.WAVE_BASE_ENEMIES + (
             estado_jogo["rodada"] - 1
@@ -84,18 +98,30 @@ def iniciar_onda(estado_jogo, agora):
 
     estado_jogo["proximo_spawn"] = agora
     estado_jogo["estado"] = "ONDA"
+
+
 def atualizar_boss(estado_jogo):
     boss = estado_jogo["boss"]
 
     if boss is not None:
-        quantidades = [2, 3, 2]
+        quantidades_base = [2, 3, 2]
+
+        aumento = (estado_jogo["aparicoes_chefe"] - 1) * 2
+
+        quantidades = [
+            quantidade + aumento
+            for quantidade in quantidades_base
+        ]
 
         while boss.ataques_com_spawn < len(boss.ataques_realizados):
             indice = boss.ataques_com_spawn
 
             if indice < len(quantidades):
                 quantidade = quantidades[indice]
-                tipos = config.tipos_disponiveis_na_rodada(7)
+
+                tipos = config.tipos_disponiveis_na_rodada(
+                    estado_jogo["rodada"]
+                )
 
                 for _ in range(quantidade):
                     tipo = random.choice(tipos)
@@ -108,18 +134,29 @@ def atualizar_boss(estado_jogo):
         if boss.derrota_finalizada:
             estado_jogo["boss"] = None
             estado_jogo["estado"] = "COMPRA"
+
             estado_jogo["sementes"] += config.ROUND_CLEAR_BONUS
             estado_jogo["rodada"] += 1
+
             estado_jogo["pintinhos"] = min(
                 config.MAX_PINTINHOS,
                 estado_jogo["pintinhos"] + 1
             )
+
+            intervalo = random.choice([6, 7, 8])
+
+            estado_jogo["proxima_rodada_chefe"] = (
+                estado_jogo["rodada"] + intervalo - 1
+            )
+
             return
 
         if boss.chegou_galinheiro and boss.vivo:
             estado_jogo["gameover_chefe"] = True
             estado_jogo["boss"] = None
             estado_jogo["estado"] = "GAMEOVER"
+
+
 def atualizar_spawn(estado_jogo, agora):
     if estado_jogo["fila_spawn"] and agora >= estado_jogo["proximo_spawn"]:
         tipo = estado_jogo["fila_spawn"].pop(0)
@@ -206,6 +243,7 @@ def verificar_fim_onda(estado_jogo):
             config.MAX_PINTINHOS,
             estado_jogo["pintinhos"] + 1
         )
+
 
 def tratar_cliques(
     estado_jogo,
@@ -299,6 +337,7 @@ def tratar_cliques(
                     som_galinha.play()
                 break
 
+
 def atualizar_galinhas(galinhas, estado_jogo):
     alvos = estado_jogo["inimigos"].copy()
 
@@ -325,6 +364,7 @@ def atualizar_ovos(estado_jogo, agora):
         if boss is not None and boss.atacando and ovo.alvo is boss:
             ovos_para_remover.append(ovo)
             continue
+
         atingiu = None
 
         for inimigo in estado_jogo["inimigos"]:
@@ -351,7 +391,9 @@ def atualizar_ovos(estado_jogo, agora):
                     ox = outro.sprite.x + outro.sprite.width / 2
                     oy = outro.sprite.y + outro.sprite.height / 2
 
-                    distancia = ((ox - hit_x) ** 2 + (oy - hit_y) ** 2) ** 0.5
+                    distancia = (
+                        (ox - hit_x) ** 2 + (oy - hit_y) ** 2
+                    ) ** 0.5
 
                     if distancia <= config.GIGANTE_SPLASH_RAIO:
                         outro.hp -= config.GIGANTE_SPLASH_DANO
@@ -386,7 +428,11 @@ def atualizar_ovos(estado_jogo, agora):
         elif estado_jogo["boss"] is not None:
             boss = estado_jogo["boss"]
 
-            if boss.vivo and not boss.atacando and Collision.collided(ovo.sprite, boss.sprite):
+            if (
+                boss.vivo
+                and not boss.atacando
+                and Collision.collided(ovo.sprite, boss.sprite)
+            ):
                 som_ovo_quebrando.play()
                 boss.receber_dano(ovo.dano)
                 ovos_para_remover.append(ovo)
@@ -401,12 +447,3 @@ def atualizar_ovos(estado_jogo, agora):
     for inimigo in remocao_combate:
         if inimigo in estado_jogo["inimigos"]:
             estado_jogo["inimigos"].remove(inimigo)
-
-def resetar_partida(ninhos, galinhas):
-    for ninho in ninhos:
-        ninho["ocupado"] = False
-        ninho["galinha"] = None
-
-    galinhas.clear()
-
-    return novo_jogo()            

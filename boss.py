@@ -1,4 +1,3 @@
-
 import os
 import pygame
 from PPlay.sprite import Sprite
@@ -6,9 +5,10 @@ import config
 
 
 class BossFazendeiro:
-    def __init__(self):
+    def __init__(self, aparicao=1):
         self.som_ataque = pygame.mixer.Sound("sounds/chefe_ataque.mp3")
         self.som_derrota = pygame.mixer.Sound("sounds/chefe_derrota.mp3")
+
         caminho = "assets/animacoes/boss/fazendeiro.png"
         imagem = pygame.image.load(caminho).convert_alpha()
 
@@ -19,6 +19,7 @@ class BossFazendeiro:
         os.makedirs(pasta_frames, exist_ok=True)
 
         self.frames = []
+
         caminho_ataque = "assets/animacoes/boss/fazendeiro_ataque.png"
         imagem_ataque = pygame.image.load(caminho_ataque).convert_alpha()
 
@@ -29,6 +30,7 @@ class BossFazendeiro:
         os.makedirs(pasta_ataque, exist_ok=True)
 
         self.frames_ataque = []
+
         caminho_derrota = "assets/animacoes/boss/fazendeiro_derrota.png"
         imagem_derrota = pygame.image.load(caminho_derrota).convert_alpha()
 
@@ -93,15 +95,21 @@ class BossFazendeiro:
 
         self.marcos_ataque = [75, 50, 25]
         self.ataques_realizados = []
+
         self.x = -self.sprite.width
         self.y = config.lane_y_center(self.lane) - self.sprite.height / 2
-        self.vida_maxima = 500
+
+        self.aparicao = aparicao
+        self.vida_maxima = int(650 * (1 + 0.75 * (aparicao - 1)))
         self.vida = self.vida_maxima
+
         self.vivo = True
         self.velocidade = 45
         self.ultimo_update = pygame.time.get_ticks()
+
         self.sprite.set_position(self.x, self.y)
         self.chegou_galinheiro = False
+
     def receber_dano(self, dano):
         if not self.vivo or self.atacando:
             return
@@ -115,9 +123,11 @@ class BossFazendeiro:
             self.som_derrota.play()
             self.indice_derrota = 0
             self.proximo_frame_derrota = pygame.time.get_ticks()
+
             self.sprite = Sprite(self.frames_derrota[0])
             self.sprite.set_position(self.x, self.y)
             return
+
         porcentagem = (self.vida / self.vida_maxima) * 100
 
         for marco in self.marcos_ataque:
@@ -125,6 +135,7 @@ class BossFazendeiro:
                 self.ataques_realizados.append(marco)
                 self.iniciar_ataque()
                 break
+
     def iniciar_ataque(self):
         self.atacando = True
         self.som_ataque.play()
@@ -136,6 +147,7 @@ class BossFazendeiro:
 
         self.sprite = Sprite(self.frames_ataque[0])
         self.sprite.set_position(self.x, self.y)
+
     def desenhar_vida(self):
         janela = pygame.display.get_surface()
 
@@ -152,12 +164,12 @@ class BossFazendeiro:
             janela,
             (0, 220, 0),
             (x, y, largura * proporcao, altura)
-        )        
+        )
+
     def update(self):
         agora = pygame.time.get_ticks()
-        if self.derrotado:
-            agora = pygame.time.get_ticks()
 
+        if self.derrotado:
             if agora >= self.proximo_frame_derrota:
                 self.indice_derrota += 1
 

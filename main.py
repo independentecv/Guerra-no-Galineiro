@@ -14,6 +14,7 @@ from especiais_codigo.pintinho import Pintinho
 import especiais_codigo.habilidades as habilidades
 import efeitos
 
+
 cenario.configurar_alturas()
 
 MUSICA_NORMAL = "sounds/fundo.mp3"
@@ -33,10 +34,12 @@ janela = Window(
 
 galo = Galo()
 galo.set_position(450, 250)
+
 pintinho = Pintinho()
 pintinho.set_position(450, 350)
 
 elementos = cenario.criar_cenario()
+
 barra_itens_y = elementos["barra_itens_y"]
 painel_baixo_y = elementos["painel_baixo_y"]
 
@@ -254,18 +257,21 @@ while True:
 
     boss_atual = estado_jogo["boss"] is not None
 
+    rodada_chefe = (
+        estado_jogo["rodada"] == estado_jogo["proxima_rodada_chefe"]
+    )
+
     if rodada_anterior is not None:
 
         if (
-            rodada_anterior == 6
-            and estado_jogo["rodada"] == 7
+            rodada_anterior != estado_jogo["rodada"]
+            and rodada_chefe
             and estado_jogo["estado"] == "COMPRA"
         ):
             tremida_ate = agora + DURACAO_TREMIDA
 
         elif (
-            rodada_anterior == 7
-            and estado_jogo["rodada"] == 7
+            rodada_chefe
             and estado_anterior == "COMPRA"
             and estado_jogo["estado"] == "ONDA"
         ):
@@ -274,7 +280,6 @@ while True:
         elif (
             boss_anterior
             and not boss_atual
-            and estado_jogo["rodada"] == 8
             and estado_jogo["estado"] == "COMPRA"
         ):
             tremida_ate = agora + DURACAO_TREMIDA
@@ -283,7 +288,7 @@ while True:
     estado_anterior = estado_jogo["estado"]
     boss_anterior = boss_atual
 
-    if estado_jogo["rodada"] == 7:
+    if rodada_chefe:
 
         if musica_atual != "chefe":
             pygame.mixer.music.load(MUSICA_CHEFE)
@@ -300,11 +305,7 @@ while True:
     galo.update()
     pintinho.update()
 
-    if estado_jogo["rodada"] < 7:
-
-        background_atual = elementos["background"]
-
-    elif estado_jogo["rodada"] == 7:
+    if rodada_chefe:
 
         if estado_jogo["estado"] == "COMPRA":
             background_atual = elementos["background_medio"]
@@ -312,7 +313,6 @@ while True:
             background_atual = elementos["background_escuro"]
 
     else:
-
         background_atual = elementos["background"]
 
     interface.desenhar_cenario(
