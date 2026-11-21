@@ -18,13 +18,40 @@ ENEMY_LABEL = {
     "raposa": "Raposa",
     "cobra": "Cobra"
 }
+SONS_INIMIGOS = {
+    "gato": [
+        pygame.mixer.Sound("sounds/gato.mp3"),
+        pygame.mixer.Sound("sounds/gato2.mp3")
+    ],
+    "cobra": [
+        pygame.mixer.Sound("sounds/cobra.mp3")
+    ],
+    "gaviao": [
+        pygame.mixer.Sound("sounds/gaviao.mp3")
+    ],
+    "raposa": [
+        pygame.mixer.Sound("sounds/raposa.mp3")
+    ]
+}
 
+SONS_INIMIGOS["gato"][0].set_volume(0.07)
+SONS_INIMIGOS["gato"][1].set_volume(0.07)
+
+SONS_INIMIGOS["cobra"][0].set_volume(0.08)
+
+SONS_INIMIGOS["gaviao"][0].set_volume(0.06)
+
+SONS_INIMIGOS["raposa"][0].set_volume(0.04)
 
 class Enemy:
 
     def __init__(self, tipo, lane_index, multiplicador=1.0):
         self.tipo = tipo
-
+        som = random.choice(SONS_INIMIGOS[tipo])
+        som.play()
+        self.som_andando_tocado = False
+        self.proximo_som_andando = pygame.time.get_ticks() + random.randint(1000, 3000)
+        
         self.frames_animacao = None
         self.indice_frame = 0
         self.proximo_frame = pygame.time.get_ticks() + 120
@@ -60,6 +87,10 @@ class Enemy:
         self.lane_alvo = lane_index
         self.vivo = True
         self.confuso_ate = 0
+        self.congelado_ate = 0
+        self.tempo_proxima_tremida = 0
+        self.offset_tremida_x = 0
+        self.offset_tremida_y = 0
 
         x_inicial = 10
         y_inicial = config.lane_y_center(lane_index) - self.sprite.height / 2
@@ -138,6 +169,14 @@ class Enemy:
 
     def update(self, multiplicador_velocidade=1.0):
         agora = pygame.time.get_ticks()
+        if (
+            not self.som_andando_tocado
+            and agora >= self.proximo_som_andando
+            and self.vivo
+        ):
+            som = random.choice(SONS_INIMIGOS[self.tipo])
+            som.play()
+            self.som_andando_tocado = True
         self.sprite.y -= self.deslocamento_animacao
         self.deslocamento_animacao = 0
 
@@ -186,13 +225,42 @@ class Enemy:
         return self.sprite.x + self.sprite.width >= config.GALINHEIRO_X
 
     def draw(self, janela):
+        agora = pygame.time.get_ticks()
+
+        if agora < self.congelado_ate:
+
+            if agora >= self.tempo_proxima_tremida:
+                self.offset_tremida_x = random.randint(-3, 3)
+                self.offset_tremida_y = random.randint(-2, 2)
+                self.tempo_proxima_tremida = agora + 45
+
+        else:
+            self.offset_tremida_x = 0
+            self.offset_tremida_y = 0
+
+        x_original = self.sprite.x
+        y_original = self.sprite.y
+
+        self.sprite.set_position(
+            x_original + self.offset_tremida_x,
+            y_original + self.offset_tremida_y
+        )
+
         self.sprite.draw()
-        # Rótulo de depuração (linha atual + hp) -- remover quando a arte final
-        # e a barra de vida estiverem prontas.
+
+        self.sprite.set_position(x_original, y_original)
+
         rotulo = f"{ENEMY_LABEL[self.tipo]} L{self.lane_atual + 1} {self.hp}hp"
-        if pygame.time.get_ticks() < self.confuso_ate:
+
+        if agora < self.confuso_ate:
             rotulo += " (confuso)"
-        janela.draw_text(rotulo, self.sprite.x - 10, self.sprite.y - 16, cor="black")
+
+        janela.draw_text(
+            rotulo,
+            x_original + self.offset_tremida_x - 10,
+            y_original + self.offset_tremida_y - 16,
+            cor="black"
+        )
 
 
 class Chicken:
@@ -470,16 +538,16 @@ class Egg:
             self.sprite = Sprite(sprite_path)
 
         elif tipo_especial == "gigante":
-            self.sprite = redimensionar_ovo(sprite_path, 60)
+            self.sprite = redimensionar_ovo(sprite_path, 32)
 
         elif tipo_especial == "codorna":
-            self.sprite = redimensionar_ovo(sprite_path, 40)
+            self.sprite = redimensionar_ovo(sprite_path, 20)
 
         elif tipo_especial == "podre":
             self.sprite = redimensionar_ovo(sprite_path, 20)
 
         elif tipo_especial == "chupim":
-            self.sprite = redimensionar_ovo(sprite_path, 25)
+            self.sprite = redimensionar_ovo(sprite_path, 20)
 
         self.sprite.set_position(
             x_origem - self.sprite.width / 2,

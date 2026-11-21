@@ -33,7 +33,7 @@ class Pintinho:
 
             quadro = pygame.transform.smoothscale(
                 quadro,
-                (int(largura_frame * 0.5), int(altura_frame * 0.5))
+                (int(largura_frame * 0.6), int(altura_frame * 0.6))
             )
 
             quadro = pygame.transform.flip(quadro, True, False)

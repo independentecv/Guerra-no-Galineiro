@@ -103,19 +103,24 @@ def criar_cenario():
     )
     gameover_chefe.set_position(0, 0)
 
-    btn_iniciar = Sprite('assets/botao_acao.png')
+    btn_iniciar = Sprite('assets/play.png')
     btn_iniciar.set_position(
         config.WINDOW_WIDTH - btn_iniciar.width - 15,
         (topo_altura - btn_iniciar.height) / 2
     )
 
-    btn_reiniciar = Sprite('assets/botao_acao.png')
+    btn_reiniciar = Sprite('assets/restart.png')
     btn_reiniciar.set_position(
         config.WINDOW_WIDTH / 2 - btn_reiniciar.width / 2,
         config.WINDOW_HEIGHT / 2 + 30
     )
-
-    btn_menu_gameover = Sprite('assets/botao_acao.png')
+    escolha = Sprite('assets/escolha.png')
+    escolha.set_scale(
+        config.WINDOW_WIDTH / escolha.width,
+        config.WINDOW_HEIGHT / escolha.height
+    )
+    escolha.set_position(0, 0)
+    btn_menu_gameover = Sprite('assets/menu.png')
     btn_menu_gameover.set_position(
         config.WINDOW_WIDTH / 2 - btn_menu_gameover.width / 2,
         btn_reiniciar.y + btn_reiniciar.height + 15
@@ -123,15 +128,22 @@ def criar_cenario():
 
     menu_gap = 20
 
-    btn_menu_iniciar = Sprite('assets/botao_acao.png')
-    btn_menu_rankings = Sprite('assets/botao_acao.png')
-    btn_menu_sair = Sprite('assets/botao_acao.png')
+    btn_menu_iniciar = Sprite('assets/play.png')
+    btn_menu_rankings = Sprite('assets/ranking.png')
+    btn_menu_sair = Sprite('assets/sair.png')
 
     botoes_menu = [
         btn_menu_iniciar,
         btn_menu_rankings,
         btn_menu_sair
     ]
+    btn_iniciar.set_scale(1.1, 1.1)
+    btn_reiniciar.set_scale(1.1, 1.1)
+    btn_menu_gameover.set_scale(1.1, 1.1)
+
+    btn_menu_iniciar.set_scale(1.1, 1.1)
+    btn_menu_rankings.set_scale(1.1, 1.1)
+    btn_menu_sair.set_scale(1.1, 1.1)
 
     menu_y0 = config.WINDOW_HEIGHT / 2 - 30
 
@@ -161,8 +173,8 @@ def criar_cenario():
         + (len(upgrades) - 1) * gap
     )
 
-    x_inicial = (config.WINDOW_WIDTH - total_largura) / 2
-    y_botoes = painel_baixo_y + 40
+    x_inicial = 15
+    y_botoes = painel_baixo_y + 30
 
     botoes_upgrade = []
 
@@ -244,6 +256,7 @@ def criar_cenario():
         "gameover_chefe": gameover_chefe,
         "btn_iniciar": btn_iniciar,
         "btn_reiniciar": btn_reiniciar,
+        "escolha": escolha,
         "btn_menu_gameover": btn_menu_gameover,
         "btn_menu_iniciar": btn_menu_iniciar,
         "btn_menu_rankings": btn_menu_rankings,

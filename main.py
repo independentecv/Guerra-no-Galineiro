@@ -1,4 +1,5 @@
 import pygame
+
 pygame.mixer.init()
 
 from PPlay.window import Window
@@ -13,7 +14,7 @@ from especiais_codigo.galo import Galo
 from especiais_codigo.pintinho import Pintinho
 import especiais_codigo.habilidades as habilidades
 import efeitos
-
+import barra_especial
 
 cenario.configurar_alturas()
 
@@ -22,7 +23,7 @@ MUSICA_CHEFE = "sounds/fundo_chefe.mp3"
 
 pygame.mixer.music.load(MUSICA_NORMAL)
 pygame.mixer.music.set_volume(0.5)
-pygame.mixer.music.play(-1)
+
 
 musica_atual = "normal"
 
@@ -53,6 +54,7 @@ barra_itens = elementos["barra_itens"]
 painel_baixo = elementos["painel_baixo"]
 gameover = elementos["gameover"]
 gameover_chefe = elementos["gameover_chefe"]
+escolha = elementos["escolha"]
 
 btn_iniciar = elementos["btn_iniciar"]
 btn_reiniciar = elementos["btn_reiniciar"]
@@ -70,6 +72,7 @@ galinhas = []
 estado_jogo = jogo.resetar_partida(ninhos, galinhas)
 
 tela = "MENU"
+especial_escolhido = None
 lane_pintinho = 0
 
 teclas_anteriores = {
@@ -112,8 +115,7 @@ while True:
         )
 
         if acao == "INICIAR":
-            estado_jogo = jogo.resetar_partida(ninhos, galinhas)
-            tela = "JOGO"
+            tela = "ESCOLHA"
 
             if musica_atual != "normal":
                 pygame.mixer.music.load(MUSICA_NORMAL)
@@ -144,7 +146,56 @@ while True:
         janela.update()
         continue
 
+    if tela == "ESCOLHA":
+
+        escolha.draw()
+
+        mx, my = janela.mouse.get_position()
+
+        if janela.mouse.button_down(1):
+
+            if mx < config.WINDOW_WIDTH / 2:
+                especial_escolhido = "PINTINHO"
+
+                estado_jogo = jogo.resetar_partida(
+                    ninhos,
+                    galinhas
+                )
+
+                pygame.mixer.music.load(MUSICA_NORMAL)
+                pygame.mixer.music.play(-1)
+                musica_atual = "normal"
+                tela = "JOGO"
+
+            else:
+                especial_escolhido = "GALO"
+
+                estado_jogo = jogo.resetar_partida(
+                    ninhos,
+                    galinhas
+                )
+
+                pygame.mixer.music.load(MUSICA_NORMAL)
+                pygame.mixer.music.play(-1)
+                musica_atual = "normal"
+                tela = "JOGO"
+
+        janela.update()
+        continue
     if estado_jogo["estado"] == "GAMEOVER":
+
+        musica_gameover = (
+            "gameover_chefe"
+            if estado_jogo["gameover_chefe"]
+            else "gameover"
+        )
+
+        if musica_atual != musica_gameover:
+            pygame.mixer.music.load(
+                f"sounds/{musica_gameover}.mp3"
+            )
+            pygame.mixer.music.play(0)
+            musica_atual = musica_gameover
 
         imagem_final = (
             gameover_chefe
@@ -174,16 +225,22 @@ while True:
         janela.update()
         continue
 
-    if tecla_1:
-        lane_pintinho = 0
+    if especial_escolhido == "PINTINHO":
 
-    if tecla_2:
-        lane_pintinho = 1
+        if tecla_1:
+            lane_pintinho = 0
 
-    if tecla_3:
-        lane_pintinho = 2
+        if tecla_2:
+            lane_pintinho = 1
 
-    if tecla_espaco and estado_jogo["estado"] == "ONDA":
+        if tecla_3:
+            lane_pintinho = 2
+
+    if (
+        especial_escolhido == "PINTINHO"
+        and tecla_espaco
+        and estado_jogo["estado"] == "ONDA"
+    ):
 
         ativou = habilidades.ativar_pintinho_por_tecla(
             estado_jogo,
@@ -199,7 +256,11 @@ while True:
                 - 15
             )
 
-    if tecla_g and estado_jogo["estado"] == "ONDA":
+    if (
+        especial_escolhido == "GALO"
+        and tecla_g
+        and estado_jogo["estado"] == "ONDA"
+    ):
 
         ativou = habilidades.ativar_galo_por_tecla(estado_jogo)
 
@@ -302,8 +363,11 @@ while True:
             pygame.mixer.music.play(-1)
             musica_atual = "normal"
 
-    galo.update()
-    pintinho.update()
+    if especial_escolhido == "GALO":
+        galo.update()
+
+    if especial_escolhido == "PINTINHO":
+        pintinho.update()
 
     if rodada_chefe:
 
@@ -327,30 +391,18 @@ while True:
         painel_baixo,
         botoes_upgrade,
         barra_itens_y,
-        painel_baixo_y
+        painel_baixo_y,
+         especial_escolhido
     )
 
     if estado_jogo["boss"] is not None:
         estado_jogo["boss"].draw()
 
-    galo.draw()
-    pintinho.draw()
-
-    janela.draw_text(
-        f"PINTINHO: {estado_jogo['carga_pintinho']}%",
-        20,
-        20,
-        tamanho=18,
-        cor="yellow"
-    )
-
-    janela.draw_text(
-        f"GALO: {estado_jogo['carga_galo']}%",
-        20,
-        45,
-        tamanho=18,
-        cor="white"
-    )
+    if especial_escolhido == "GALO":
+        galo.draw()
+    if especial_escolhido == "PINTINHO":
+        pintinho.draw()
+    
 
     agora = pygame.time.get_ticks()
 

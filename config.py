@@ -70,56 +70,56 @@ ENEMY_STATS = {
 NUM_LANES = 3
 
 ENEMY_SPEED = {
-    "gato": 190,
-    "gaviao": 60,
-    "raposa": 120,
-    "cobra": 150,
+    "gato": 170,
+    "gaviao": 70,
+    "raposa": 110,
+    "cobra": 130,
 }
 
 ENEMY_HP = {
     "gato": 20,
     "gaviao": 50,
     "raposa": 30,
-    "cobra": 60,
+    "cobra": 40,
 }
 
 ENEMY_LANE_SWITCH_MIN_INTERVAL = 2.0
 ENEMY_LANE_SWITCH_MAX_INTERVAL = 4.0
 ENEMY_LANE_SWITCH_SPEED = 200
 
-SPAWN_INTERVAL_MS = 1200
+SPAWN_INTERVAL_MS = 1300
 
 
 # --- Galinha ---
-CHICKEN_DANO = 10
+CHICKEN_DANO = 12
 CHICKEN_COOLDOWN_MS = 950
-CHICKEN_ALCANCE = 170
+CHICKEN_ALCANCE = 210
 CHICKEN_EGG_SPEED_BASE = 600
 
 
 # --- Economia ---
-STARTING_SEEDS = 10000
+STARTING_SEEDS = 100
 CHICKEN_COST = 50
 
 ENEMY_DROP = {
-    "gato": 5,
-    "gaviao": 15,
-    "raposa": 10,
-    "cobra": 10,
+    "gato": 4,
+    "gaviao": 10,
+    "raposa": 8,
+    "cobra": 12,
 }
 
 ROUND_CLEAR_BONUS = 20
 
 
 # --- Vidas ---
-MAX_PINTINHOS = 10
+MAX_PINTINHOS = 15
 
 
 # --- Ondas / dificuldade ---
 WAVE_BASE_ENEMIES = 2
-WAVE_ENEMIES_INCREMENT = 2
-WAVE_SPAWN_INTERVAL_MS = 800
-WAVE_STAT_MULTIPLIER_PER_ROUND = 0.09
+WAVE_ENEMIES_INCREMENT = 1
+WAVE_SPAWN_INTERVAL_MS = 1000
+WAVE_STAT_MULTIPLIER_PER_ROUND = 0.075
 
 
 def tipos_disponiveis_na_rodada(rodada):
@@ -131,17 +131,17 @@ def tipos_disponiveis_na_rodada(rodada):
     if rodada >= 5:
         tipos.append("raposa")
 
-    if rodada >= 2:
+    if rodada >= 8:
         tipos.append("cobra")
 
     return tipos
 
 
 # --- Upgrades de galinha ---
-CHICKEN_MIN_COOLDOWN_MS = 300
-UPGRADE_DANO_STEP = 5
-UPGRADE_ATQ_STEP_MS = 120
-UPGRADE_OVO_STEP = 80
+CHICKEN_MIN_COOLDOWN_MS = 400
+UPGRADE_DANO_STEP = 4
+UPGRADE_ATQ_STEP_MS = 60
+UPGRADE_OVO_STEP = 40
 
 UPGRADE_COST_BASE = {
     "dano": 10,
@@ -149,11 +149,11 @@ UPGRADE_COST_BASE = {
     "ovo": 5,
 }
 
-UPGRADE_COST_INCREMENT = 10
+UPGRADE_COST_INCREMENT = 11
 
 
 # --- Itens especiais ---
-ITEM_DROP_CHANCE = 0.20
+ITEM_DROP_CHANCE = 0.12
 
 ITEM_TYPES = ["podre", "gigante", "chupim", "codorna"]
 
@@ -173,13 +173,13 @@ PODRE_DANO_ENTRADA = 8
 
 
 # --- Ovo Gigante ---
-GIGANTE_DANO_MULT = 3.0
-GIGANTE_SPLASH_RAIO = 60
+GIGANTE_DANO_MULT = 2.5
+GIGANTE_SPLASH_RAIO = 40
 GIGANTE_SPLASH_DANO = 10
 
 
 # --- Ovo de Chupim ---
-CHUPIM_DURACAO_MS = 3000
+CHUPIM_DURACAO_MS = 2000
 
 
 # --- Ovo de Codorna ---

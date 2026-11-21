@@ -2,7 +2,7 @@
 import pygame
 from PPlay.sprite import Sprite
 import config
-
+import barra_especial
 
 def criar_icone(caminho, tamanho=42):
     imagem = pygame.image.load(caminho).convert_alpha()
@@ -62,7 +62,8 @@ def desenhar_cenario(
     painel_baixo,
     botoes_upgrade,
     barra_itens_y,
-    painel_baixo_y
+    painel_baixo_y,
+    especial_escolhido
 ):
     background.draw()
 
@@ -84,21 +85,19 @@ def desenhar_cenario(
     painel_topo.draw()
 
     janela.draw_text(
-        f"Onda: {estado_jogo['rodada']}   Sementes: {estado_jogo['sementes']}   "
-        f"Pintinhos: {estado_jogo['pintinhos']}/{config.MAX_PINTINHOS}   "
-        f"Custo galinha: {config.CHICKEN_COST}",
-        10, 15, cor="white"
-    )
+    f"Onda: {estado_jogo['rodada']}   Sementes: {estado_jogo['sementes']}   "
+    f"Pintinhos: {estado_jogo['pintinhos']}/{config.MAX_PINTINHOS}   "
+    f"Custo galinha: {config.CHICKEN_COST}   "
+    f"FPS: {int(janela.get_fps())}",
+    x=10,
+    y=15,
+    tamanho=20,
+    cor="white"
+)
 
     if estado_jogo["estado"] == "COMPRA":
         btn_iniciar.draw()
 
-        janela.draw_text(
-            "Iniciar Onda",
-            btn_iniciar.x + 20,
-            btn_iniciar.y + 8,
-            cor="black"
-        )
     else:
         restantes = (
             len(estado_jogo["fila_spawn"])
@@ -106,10 +105,11 @@ def desenhar_cenario(
         )
 
         janela.draw_text(
-            f"Onda em andamento ({restantes} restantes)",
+            f"{restantes} restantes",
             btn_iniciar.x - 60,
-            btn_iniciar.y + 8,
-            cor="white"
+            btn_iniciar.y + 5,
+            tamanho=26,
+            cor="orange"
         )
         barra_itens.draw()
 
@@ -160,16 +160,6 @@ def desenhar_cenario(
             if galinha_sel.item_equipado else "nenhum"
         )
 
-        janela.draw_text(
-            f"Selecionada -- Dano {galinha_sel.dano} | "
-            f"Cooldown {galinha_sel.cooldown_ms}ms | "
-            f"Vel. Ovo {int(galinha_sel.vel_ovo)}px/s | "
-            f"Item equipado: {item_txt}",
-            20,
-            painel_baixo_y + 12,
-            cor="white"
-        )
-
         for botao in botoes_upgrade:
             custo = galinha_sel.custo_upgrade(botao["stat"])
             pode_pagar = estado_jogo["sementes"] >= custo
@@ -180,24 +170,64 @@ def desenhar_cenario(
                 else botao["sprite_off"]
             ).draw()
 
+            if botao["stat"] == "dano":
+                valor = str(galinha_sel.dano)
+
+            elif botao["stat"] == "atq":
+                valor = f"{galinha_sel.cooldown_ms}ms"
+
+            elif botao["stat"] == "ovo":
+                valor = f"{int(galinha_sel.vel_ovo)}px/s"
+
             janela.draw_text(
-                f"{botao['label']}",
-                botao["x"] + 15,
-                botao["y"] + 6,
+                f"{botao['label']}: {valor}",
+                botao["x"] + 8,
+                botao["y"] + 5,
+                tamanho=14,
                 cor="black"
             )
 
             janela.draw_text(
-                f"custo {custo}",
-                botao["x"] + 15,
-                botao["y"] + 22,
+                f"Custo {custo}",
+                botao["x"] + 8,
+                botao["y"] + 24,
+                tamanho=14,
                 cor="black"
             )
 
-    janela.draw_text(
-        f"FPS: {int(janela.get_fps())}",
-        config.WINDOW_WIDTH - 90,
-        config.WINDOW_HEIGHT - 20,
-        cor="white"
-    )
-        
+    
+    if especial_escolhido == "PINTINHO":
+
+        janela.draw_text(
+            "SELECIONE A LANE E APERTE ESPAÇO",
+            650,
+            painel_baixo_y + 7,
+            tamanho=16,
+            cor="yellow"
+        )
+
+        barra_especial.desenhar_barra_especial(
+            janela,
+            "pintinho",
+            estado_jogo["carga_pintinho"],
+            x=600,
+            y=painel_baixo_y + 23
+        )
+
+    elif especial_escolhido == "GALO":
+
+        janela.draw_text(
+            "APERTE G",
+            720,
+            painel_baixo_y + 7,
+            tamanho=18,
+            cor="red"
+        )
+
+        barra_especial.desenhar_barra_especial(
+            janela,
+            "galo",
+            estado_jogo["carga_galo"],
+            x=600,
+            y=painel_baixo_y + 23
+        )

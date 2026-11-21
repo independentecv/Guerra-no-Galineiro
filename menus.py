@@ -21,11 +21,10 @@ def menu_principal(janela, btn_iniciar, btn_rankings, btn_sair):
         config.WINDOW_HEIGHT / 2 - 150,
         tamanho=40, cor="white"
     )
-
-    interface.desenhar_botao(janela, btn_iniciar, "Iniciar", mx, my)
-    interface.desenhar_botao(janela, btn_rankings, "Rankings", mx, my)
-    interface.desenhar_botao(janela, btn_sair, "Sair", mx, my)
-
+    btn_iniciar.draw()
+    btn_rankings.draw()
+    btn_sair.draw()
+    
     return acao
 
 
@@ -68,7 +67,6 @@ def tela_rankings(janela, btn_voltar):
 
     return acao
 
-
 def tela_gameover(janela, estado_jogo, imagem_gameover,
                   btn_reiniciar, btn_menu):
 
@@ -83,12 +81,7 @@ def tela_gameover(janela, estado_jogo, imagem_gameover,
 
     imagem_gameover.draw()
 
-    interface.desenhar_botao(
-        janela, btn_reiniciar, "Reiniciar", mx, my
-    )
-
-    interface.desenhar_botao(
-        janela, btn_menu, "Menu", mx, my
-    )
+    btn_reiniciar.draw()
+    btn_menu.draw()
 
     return acao

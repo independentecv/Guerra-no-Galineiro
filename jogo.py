@@ -9,8 +9,8 @@ from boss import BossFazendeiro
 som_galinha = pygame.mixer.Sound("sounds/popopo.mp3")
 som_ovo_quebrando = pygame.mixer.Sound("sounds/ovo_quebrando.mp3")
 
-som_galinha.set_volume(0.7)
-som_ovo_quebrando.set_volume(0.15)
+som_galinha.set_volume(0.6)
+som_ovo_quebrando.set_volume(0.12)
 
 
 def novo_jogo():
@@ -29,8 +29,8 @@ def novo_jogo():
         "galinha_selecionada": None,
         "ranking_salvo": False,
         "posicao_ranking": None,
-        "carga_pintinho": 0,
-        "carga_galo": 0,
+        "carga_pintinho": 20,
+        "carga_galo": 20,
         "boss": None,
         "gameover_chefe": False,
         "proxima_rodada_chefe": 7,
@@ -49,12 +49,12 @@ def matar_inimigo(inimigo, estado_jogo, lista_remocao):
 
     estado_jogo["carga_pintinho"] = min(
         100,
-        estado_jogo["carga_pintinho"] + 100
+        estado_jogo["carga_pintinho"] + 11
     )
 
     estado_jogo["carga_galo"] = min(
         100,
-        estado_jogo["carga_galo"] + 100
+        estado_jogo["carga_galo"] + 12
     )
 
     if random.random() < config.ITEM_DROP_CHANCE:
