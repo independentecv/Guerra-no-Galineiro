@@ -1,5 +1,5 @@
-
 import pygame
+pygame.mixer.init()
 
 from PPlay.window import Window
 
@@ -15,6 +15,15 @@ import especiais_codigo.habilidades as habilidades
 import efeitos
 
 cenario.configurar_alturas()
+
+MUSICA_NORMAL = "sounds/fundo.mp3"
+MUSICA_CHEFE = "sounds/fundo_chefe.mp3"
+
+pygame.mixer.music.load(MUSICA_NORMAL)
+pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.play(-1)
+
+musica_atual = "normal"
 
 janela = Window(
     config.WINDOW_WIDTH,
@@ -67,6 +76,7 @@ teclas_anteriores = {
     pygame.K_SPACE: False,
     pygame.K_g: False
 }
+
 rodada_anterior = None
 estado_anterior = None
 boss_anterior = False
@@ -85,6 +95,7 @@ while True:
     tecla_3 = teclas[pygame.K_3] and not teclas_anteriores[pygame.K_3]
     tecla_espaco = teclas[pygame.K_SPACE] and not teclas_anteriores[pygame.K_SPACE]
     tecla_g = teclas[pygame.K_g] and not teclas_anteriores[pygame.K_g]
+
     for tecla in teclas_anteriores:
         teclas_anteriores[tecla] = teclas[tecla]
 
@@ -101,10 +112,16 @@ while True:
             estado_jogo = jogo.resetar_partida(ninhos, galinhas)
             tela = "JOGO"
 
+            if musica_atual != "normal":
+                pygame.mixer.music.load(MUSICA_NORMAL)
+                pygame.mixer.music.play(-1)
+                musica_atual = "normal"
+
         elif acao == "RANKINGS":
             tela = "RANKINGS"
 
         elif acao == "SAIR":
+            pygame.mixer.music.stop()
             janela.close()
             raise SystemExit
 
@@ -143,11 +160,17 @@ while True:
         if acao == "REINICIAR":
             estado_jogo = jogo.resetar_partida(ninhos, galinhas)
 
+            if musica_atual != "normal":
+                pygame.mixer.music.load(MUSICA_NORMAL)
+                pygame.mixer.music.play(-1)
+                musica_atual = "normal"
+
         elif acao == "MENU":
             tela = "MENU"
 
         janela.update()
         continue
+
     if tecla_1:
         lane_pintinho = 0
 
@@ -156,7 +179,9 @@ while True:
 
     if tecla_3:
         lane_pintinho = 2
+
     if tecla_espaco and estado_jogo["estado"] == "ONDA":
+
         ativou = habilidades.ativar_pintinho_por_tecla(
             estado_jogo,
             lane_pintinho,
@@ -166,27 +191,31 @@ while True:
         if ativou:
             pintinho.ativar(
                 config.WINDOW_WIDTH - pintinho.sprite.width - 110,
-                config.lane_y_center(lane_pintinho) - pintinho.sprite.height / 2 - 15
+                config.lane_y_center(lane_pintinho)
+                - pintinho.sprite.height / 2
+                - 15
             )
 
     if tecla_g and estado_jogo["estado"] == "ONDA":
+
         ativou = habilidades.ativar_galo_por_tecla(estado_jogo)
 
         if ativou:
             galo.ativar(
-            (config.WINDOW_WIDTH - galo.sprite.width) / 2,
-            (config.WINDOW_HEIGHT - galo.sprite.height) / 2 - 50
-        )
+                (config.WINDOW_WIDTH - galo.sprite.width) / 2,
+                (config.WINDOW_HEIGHT - galo.sprite.height) / 2 - 50
+            )
+
     if estado_jogo["estado"] == "COMPRA":
 
         if janela.mouse.button_down(1):
+
             mx, my = janela.mouse.get_position()
 
             if interface.clicou_em(btn_iniciar, mx, my):
                 jogo.iniciar_onda(estado_jogo, agora)
 
     if estado_jogo["estado"] == "ONDA":
-
         jogo.atualizar_spawn(estado_jogo, agora)
 
     jogo.atualizar_inimigos(estado_jogo)
@@ -220,6 +249,7 @@ while True:
         estado_jogo,
         agora
     )
+
     agora = pygame.time.get_ticks()
 
     boss_atual = estado_jogo["boss"] is not None
@@ -252,19 +282,39 @@ while True:
     rodada_anterior = estado_jogo["rodada"]
     estado_anterior = estado_jogo["estado"]
     boss_anterior = boss_atual
+
+    if estado_jogo["rodada"] == 7:
+
+        if musica_atual != "chefe":
+            pygame.mixer.music.load(MUSICA_CHEFE)
+            pygame.mixer.music.play(-1)
+            musica_atual = "chefe"
+
+    else:
+
+        if musica_atual != "normal":
+            pygame.mixer.music.load(MUSICA_NORMAL)
+            pygame.mixer.music.play(-1)
+            musica_atual = "normal"
+
     galo.update()
     pintinho.update()
+
     if estado_jogo["rodada"] < 7:
+
         background_atual = elementos["background"]
 
     elif estado_jogo["rodada"] == 7:
+
         if estado_jogo["estado"] == "COMPRA":
             background_atual = elementos["background_medio"]
         else:
             background_atual = elementos["background_escuro"]
 
     else:
+
         background_atual = elementos["background"]
+
     interface.desenhar_cenario(
         janela,
         background_atual,
@@ -279,30 +329,42 @@ while True:
         barra_itens_y,
         painel_baixo_y
     )
+
     if estado_jogo["boss"] is not None:
         estado_jogo["boss"].draw()
+
     galo.draw()
     pintinho.draw()
 
     janela.draw_text(
         f"PINTINHO: {estado_jogo['carga_pintinho']}%",
-        20, 20, tamanho=18, cor="yellow"
+        20,
+        20,
+        tamanho=18,
+        cor="yellow"
     )
 
     janela.draw_text(
         f"GALO: {estado_jogo['carga_galo']}%",
-        20, 45, tamanho=18, cor="white"
+        20,
+        45,
+        tamanho=18,
+        cor="white"
     )
 
     agora = pygame.time.get_ticks()
-    
 
     if agora < tremida_ate:
+
         restante = tremida_ate - agora
 
         intensidade = max(
             1,
-            int(INTENSIDADE_TREMIDA * restante / DURACAO_TREMIDA)
+            int(
+                INTENSIDADE_TREMIDA
+                * restante
+                / DURACAO_TREMIDA
+            )
         )
 
         efeitos.aplicar_tremida(intensidade)

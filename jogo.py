@@ -6,7 +6,10 @@ import config
 from entities import Enemy
 from entities import Enemy, Chicken
 from boss import BossFazendeiro
-
+som_galinha = pygame.mixer.Sound("sounds/popopo.mp3")
+som_ovo_quebrando = pygame.mixer.Sound("sounds/ovo_quebrando.mp3")
+som_galinha.set_volume(0.7)
+som_ovo_quebrando.set_volume(0.3)
 
 def novo_jogo():
     return {
@@ -293,7 +296,7 @@ def tratar_cliques(
                     galinhas.append(nova)
                     ninho["ocupado"] = True
                     ninho["galinha"] = nova
-
+                    som_galinha.play()
                 break
 
 def atualizar_galinhas(galinhas, estado_jogo):
@@ -333,6 +336,7 @@ def atualizar_ovos(estado_jogo, agora):
                 break
 
         if atingiu is not None:
+            som_ovo_quebrando.play()
             atingiu.hp -= ovo.dano
             ovos_para_remover.append(ovo)
 
@@ -383,6 +387,7 @@ def atualizar_ovos(estado_jogo, agora):
             boss = estado_jogo["boss"]
 
             if boss.vivo and not boss.atacando and Collision.collided(ovo.sprite, boss.sprite):
+                som_ovo_quebrando.play()
                 boss.receber_dano(ovo.dano)
                 ovos_para_remover.append(ovo)
 

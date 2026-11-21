@@ -7,6 +7,8 @@ import config
 
 class BossFazendeiro:
     def __init__(self):
+        self.som_ataque = pygame.mixer.Sound("sounds/chefe_ataque.mp3")
+        self.som_derrota = pygame.mixer.Sound("sounds/chefe_derrota.mp3")
         caminho = "assets/animacoes/boss/fazendeiro.png"
         imagem = pygame.image.load(caminho).convert_alpha()
 
@@ -110,6 +112,7 @@ class BossFazendeiro:
             self.vida = 0
             self.vivo = False
             self.derrotado = True
+            self.som_derrota.play()
             self.indice_derrota = 0
             self.proximo_frame_derrota = pygame.time.get_ticks()
             self.sprite = Sprite(self.frames_derrota[0])
@@ -124,6 +127,7 @@ class BossFazendeiro:
                 break
     def iniciar_ataque(self):
         self.atacando = True
+        self.som_ataque.play()
         self.indice_ataque = 0
 
         agora = pygame.time.get_ticks()

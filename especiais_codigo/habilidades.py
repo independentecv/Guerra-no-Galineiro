@@ -2,15 +2,28 @@
 import pygame
 import config
 
+som_galo = pygame.mixer.Sound("sounds/galo.mp3")
+som_pintinho = pygame.mixer.Sound("sounds/pintinho.mp3")
+som_pintinho_1 = pygame.mixer.Sound("sounds/pintinho.mp3")
+som_pintinho_2 = pygame.mixer.Sound("sounds/pintinho2.mp3")
 
-DANO_MAX_PINTINHO = 100
-DANO_MIN_PINTINHO = 20
-DISTANCIA_MAX_PINTINHO = 500
+proximo_som_pintinho = 0
+DANO_MAX_PINTINHO = 90
+DANO_MIN_PINTINHO = 25
+DISTANCIA_MAX_PINTINHO = 700
 
 DURACAO_LENTIDAO_PINTINHO = 3000
 MULT_PINTINHO = 0.5
 
+def tocar_som_pintinho():
+    global proximo_som_pintinho
 
+    if proximo_som_pintinho == 0:
+        som_pintinho_1.play()
+        proximo_som_pintinho = 1
+    else:
+        som_pintinho_2.play()
+        proximo_som_pintinho = 0
 def ativar_pintinho(estado_jogo, lane, x_pintinho):
 
     agora = pygame.time.get_ticks()
@@ -43,10 +56,10 @@ def ativar_pintinho_por_tecla(estado_jogo, lane, x_pintinho):
     ativar_pintinho(estado_jogo, lane, x_pintinho)
 
     estado_jogo["carga_pintinho"] = 0
-
+    tocar_som_pintinho()
     return True
 
-DURACAO_CONGELAMENTO_GALO = 2000
+DURACAO_CONGELAMENTO_GALO = 3000
 
 
 def ativar_galo(estado_jogo):
@@ -71,5 +84,5 @@ def ativar_galo_por_tecla(estado_jogo):
     ativar_galo(estado_jogo)
 
     estado_jogo["carga_galo"] = 0
-
+    som_galo.play()
     return True

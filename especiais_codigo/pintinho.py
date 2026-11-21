@@ -9,7 +9,8 @@ class Pintinho:
         self.frames = self._carregar_frames()
         self.indice_frame = 0
         self.sprite = self.frames[0]
-
+        self.duracao = 2800
+        self.tempo_ativacao = 0
         self.tempo_frame = 150
         self.proximo_frame = 0
         self.ativo = False
@@ -52,7 +53,10 @@ class Pintinho:
         self.indice_frame = 0
         self.sprite = self.frames[0]
         self.sprite.set_position(x, y)
-        self.proximo_frame = pygame.time.get_ticks() + self.tempo_frame
+
+        agora = pygame.time.get_ticks()
+        self.tempo_ativacao = agora
+        self.proximo_frame = agora + self.tempo_frame
 
     def update(self):
         if not self.ativo:
@@ -60,12 +64,12 @@ class Pintinho:
 
         agora = pygame.time.get_ticks()
 
-        if agora >= self.proximo_frame:
-            self.indice_frame += 1
+        if agora - self.tempo_ativacao >= self.duracao:
+            self.ativo = False
+            return
 
-            if self.indice_frame >= len(self.frames):
-                self.ativo = False
-                return
+        if agora >= self.proximo_frame:
+            self.indice_frame = (self.indice_frame + 1) % len(self.frames)
 
             x = self.sprite.x
             y = self.sprite.y
