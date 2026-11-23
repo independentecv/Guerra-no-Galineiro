@@ -70,42 +70,47 @@ ENEMY_STATS = {
 NUM_LANES = 3
 
 ENEMY_SPEED = {
-    "gato": 170,
-    "gaviao": 70,
-    "raposa": 110,
-    "cobra": 130,
+    "gato": 150,
+    "gaviao": 65,
+    "raposa": 100,
+    "cobra": 120,
 }
 
 ENEMY_HP = {
-    "gato": 20,
-    "gaviao": 50,
-    "raposa": 30,
-    "cobra": 40,
+    "gato": 22,
+    "gaviao": 55,
+    "raposa": 36,
+    "cobra": 35,
 }
 
 ENEMY_LANE_SWITCH_MIN_INTERVAL = 2.0
 ENEMY_LANE_SWITCH_MAX_INTERVAL = 4.0
 ENEMY_LANE_SWITCH_SPEED = 200
 
-SPAWN_INTERVAL_MS = 1300
+SPAWN_INTERVAL_MS = 1500
 
 
 # --- Galinha ---
-CHICKEN_DANO = 12
-CHICKEN_COOLDOWN_MS = 950
-CHICKEN_ALCANCE = 210
-CHICKEN_EGG_SPEED_BASE = 600
+CHICKEN_DANO = 13
+CHICKEN_COOLDOWN_MS = 910
+CHICKEN_ALCANCE = 220
+CHICKEN_EGG_SPEED_BASE = 520
 
 
 # --- Economia ---
-STARTING_SEEDS = 100
+STARTING_SEEDS = 150
 CHICKEN_COST = 50
+CHICKEN_COST_INCREMENT = 6
+
+
+def custo_galinha(rodada):
+    return CHICKEN_COST + (rodada - 1)  * CHICKEN_COST_INCREMENT
 
 ENEMY_DROP = {
-    "gato": 4,
-    "gaviao": 10,
-    "raposa": 8,
-    "cobra": 12,
+    "gato": 6,
+    "gaviao": 11,
+    "raposa": 9,
+    "cobra": 10,
 }
 
 ROUND_CLEAR_BONUS = 20
@@ -116,10 +121,10 @@ MAX_PINTINHOS = 15
 
 
 # --- Ondas / dificuldade ---
-WAVE_BASE_ENEMIES = 2
+WAVE_BASE_ENEMIES = 3
 WAVE_ENEMIES_INCREMENT = 1
-WAVE_SPAWN_INTERVAL_MS = 1000
-WAVE_STAT_MULTIPLIER_PER_ROUND = 0.075
+WAVE_SPAWN_INTERVAL_MS = 1200
+WAVE_STAT_MULTIPLIER_PER_ROUND = 0.05
 
 
 def tipos_disponiveis_na_rodada(rodada):
@@ -138,22 +143,22 @@ def tipos_disponiveis_na_rodada(rodada):
 
 
 # --- Upgrades de galinha ---
-CHICKEN_MIN_COOLDOWN_MS = 400
-UPGRADE_DANO_STEP = 4
-UPGRADE_ATQ_STEP_MS = 60
-UPGRADE_OVO_STEP = 40
+CHICKEN_MIN_COOLDOWN_MS = 500
+UPGRADE_DANO_STEP = 3
+UPGRADE_ATQ_STEP_MS = 50
+UPGRADE_OVO_STEP = 35
 
 UPGRADE_COST_BASE = {
-    "dano": 10,
-    "atq": 15,
-    "ovo": 5,
+    "dano": 20,
+    "atq": 25,
+    "ovo": 15,
 }
 
-UPGRADE_COST_INCREMENT = 11
+UPGRADE_COST_INCREMENT = 15
 
 
 # --- Itens especiais ---
-ITEM_DROP_CHANCE = 0.12
+ITEM_DROP_CHANCE = 0.13
 
 ITEM_TYPES = ["podre", "gigante", "chupim", "codorna"]
 
@@ -184,7 +189,7 @@ CHUPIM_DURACAO_MS = 2000
 
 # --- Ovo de Codorna ---
 CODORNA_QTD_OVOS = 3
-CODORNA_DANO_MULT = 0.4
+CODORNA_DANO_MULT = 0.5
 CODORNA_VEL_MULT = 1.3
 
 

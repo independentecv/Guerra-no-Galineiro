@@ -1,6 +1,6 @@
 
 import pygame
-from PPlay.sprite import Sprite
+from animacoes import carregar_frames_animacao
 
 
 class Pintinho:
@@ -17,33 +17,12 @@ class Pintinho:
 
     def _carregar_frames(self):
         caminho = "assets/especiais/pintinho.png"
-
-        spritesheet = pygame.image.load(caminho).convert_alpha()
-
-        quantidade = 14
-        largura_frame = spritesheet.get_width() // quantidade
-        altura_frame = spritesheet.get_height()
-
-        frames = []
-
-        for i in range(quantidade):
-            quadro = spritesheet.subsurface(
-                (i * largura_frame, 0, largura_frame, altura_frame)
-            ).copy()
-
-            quadro = pygame.transform.smoothscale(
-                quadro,
-                (int(largura_frame * 0.6), int(altura_frame * 0.6))
-            )
-
-            quadro = pygame.transform.flip(quadro, True, False)
-
-            caminho_frame = f"assets/especiais/pintinho_frame_{i}.png"
-            pygame.image.save(quadro, caminho_frame)
-
-            frames.append(Sprite(caminho_frame))
-
-        return frames
+        return carregar_frames_animacao(
+            caminho,
+            quantidade=14,
+            escala=0.6,
+            inverter_horizontal=True,
+        )
 
     def ativar(self, x, y):
         if self.ativo:

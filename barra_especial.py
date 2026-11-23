@@ -60,3 +60,4 @@ def desenhar_barra_especial(janela, especial, carga, x=550, y=500):
         (int(imagem.get_width() * 2.0), int(imagem.get_height() * 2.0))
     )
     janela.get_screen().blit(imagem, (x, y))
+    

@@ -32,8 +32,9 @@ class GameImage(GameObject):
     def __init__(self, caminho_imagem):
         super().__init__()
         
-        # Tenta buscar do cache primeiro
-        if caminho_imagem in GameImage._resource_cache:
+        if isinstance(caminho_imagem, pygame.Surface):
+            self.image = caminho_imagem
+        elif caminho_imagem in GameImage._resource_cache:
             self.image = GameImage._resource_cache[caminho_imagem]
         else:
             # Se não estiver lá, carrega do disco e otimiza
@@ -54,29 +55,52 @@ class GameImage(GameObject):
         
         # Rect interno para operações do Pygame
         self.rect = self.image.get_rect()
+        self._draw_cache_key = None
+        self._draw_cache = None
+
+    def _render_surface(self, source, source_key):
+        if (
+            self.scale_x == 1.0
+            and self.scale_y == 1.0
+            and self.rotation == 0
+            and self.transparency == 255
+            and source.get_alpha() in (None, 255)
+        ):
+            return source
+
+        cache_key = (
+            source_key,
+            self.width,
+            self.height,
+            self.scale_x,
+            self.scale_y,
+            self.rotation,
+            self.transparency,
+        )
+
+        if cache_key != self._draw_cache_key:
+            imagem = source.copy()
+            imagem.set_alpha(self.transparency)
+
+            if self.rotation != 0:
+                imagem = pygame.transform.rotate(imagem, self.rotation)
+
+            if self.scale_x != 1.0 or self.scale_y != 1.0:
+                nova_w = max(1, int(self.width * self.scale_x))
+                nova_h = max(1, int(self.height * self.scale_y))
+                imagem = pygame.transform.scale(imagem, (nova_w, nova_h))
+
+            self._draw_cache_key = cache_key
+            self._draw_cache = imagem
+
+        return self._draw_cache
 
     def draw(self):
         """Desenha a imagem na tela aplicando escala, rotação e transparência."""
-        # Aplica transparência
-        imagem_transformada = self.image.copy()
-        imagem_transformada.set_alpha(self.transparency)
-        
-        # Aplica rotação
-        if self.rotation != 0:
-            imagem_transformada = pygame.transform.rotate(imagem_transformada, self.rotation)
-        
-        # Aplica escala
-        if self.scale_x != 1.0 or self.scale_y != 1.0:
-            nova_w = max(1, int(self.width * self.scale_x))
-            nova_h = max(1, int(self.height * self.scale_y))
-            imagem_transformada = pygame.transform.scale(imagem_transformada, (nova_w, nova_h))
-        
-        # Atualizamos o rect interno antes de desenhar
         self.rect.x = self.x
         self.rect.y = self.y
-        
-        # Pega a tela da Window e desenha
-        Window.get_screen().blit(imagem_transformada, self.rect)
+        imagem = self._render_surface(self.image, (id(self.image),))
+        Window.get_screen().blit(imagem, self.rect)
 
     def draw_collision_box(self, cor=(0, 255, 0)):
         """Método de Debug: Desenha a caixa de colisão do objeto."""

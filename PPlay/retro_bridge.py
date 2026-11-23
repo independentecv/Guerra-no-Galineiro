@@ -27,7 +27,7 @@ originalmente concebida pela Equipe PPlay:
 
 def aplicar_retrocompatibilidade():
     try:
-        from .window import Window
+        from .window import Window, _render_text
         from .mouse import Mouse
         from .keyboard import Keyboard
         from .animation import Animation
@@ -61,8 +61,16 @@ def aplicar_retrocompatibilidade():
         font_name = kwargs.get('font_name', kwargs.get('fonte', "Arial"))
         bold = kwargs.get('bold', False)
         italic = kwargs.get('italic', False)
-        f = pygame.font.SysFont(font_name, size, bold, italic)
-        self.screen.blit(f.render(str(text), True, color), [x, y])
+        color = tuple(pygame.Color(color))
+        image = _render_text(
+            str(text),
+            font_name,
+            size,
+            color,
+            bool(bold),
+            bool(italic),
+        )
+        self.screen.blit(image, [x, y])
     Window.draw_text = draw_text_compat
 
     # --- 2. INPUTS: TRADUÇÃO DE TECLAS E BOTÕES ---

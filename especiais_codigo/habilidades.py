@@ -10,9 +10,9 @@ som_pintinho_2 = pygame.mixer.Sound("sounds/pintinho2.mp3")
 proximo_som_pintinho = 0
 DANO_MAX_PINTINHO = 90
 DANO_MIN_PINTINHO = 25
-DISTANCIA_MAX_PINTINHO = 700
+DISTANCIA_MAX_PINTINHO = 900
 
-DURACAO_LENTIDAO_PINTINHO = 3000
+DURACAO_LENTIDAO_PINTINHO = 2800
 MULT_PINTINHO = 0.5
 
 def tocar_som_pintinho():
@@ -60,6 +60,7 @@ def ativar_pintinho_por_tecla(estado_jogo, lane, x_pintinho):
     return True
 
 DURACAO_CONGELAMENTO_GALO = 3000
+
 
 
 def ativar_galo(estado_jogo):

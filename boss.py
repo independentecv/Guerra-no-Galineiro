@@ -1,7 +1,8 @@
-import os
 import pygame
-from PPlay.sprite import Sprite
+from PPlay.window import Window
+from animacoes import carregar_frames_animacao
 import config
+
 
 
 class BossFazendeiro:
@@ -9,49 +10,24 @@ class BossFazendeiro:
         self.som_ataque = pygame.mixer.Sound("sounds/chefe_ataque.mp3")
         self.som_derrota = pygame.mixer.Sound("sounds/chefe_derrota.mp3")
 
-        caminho = "assets/animacoes/boss/fazendeiro.png"
-        imagem = pygame.image.load(caminho).convert_alpha()
-
-        largura_frame = imagem.get_width() // 8
-        altura_frame = imagem.get_height()
-
-        pasta_frames = "assets/animacoes/boss/frames"
-        os.makedirs(pasta_frames, exist_ok=True)
-
-        self.frames = []
-
-        caminho_ataque = "assets/animacoes/boss/fazendeiro_ataque.png"
-        imagem_ataque = pygame.image.load(caminho_ataque).convert_alpha()
-
-        largura_ataque = imagem_ataque.get_width() // 12
-        altura_ataque = imagem_ataque.get_height()
-
-        pasta_ataque = "assets/animacoes/boss/frames_ataque"
-        os.makedirs(pasta_ataque, exist_ok=True)
-
-        self.frames_ataque = []
-
-        caminho_derrota = "assets/animacoes/boss/fazendeiro_derrota.png"
-        imagem_derrota = pygame.image.load(caminho_derrota).convert_alpha()
-
-        largura_derrota = imagem_derrota.get_width() // 16
-        altura_derrota = imagem_derrota.get_height()
-
-        pasta_derrota = "assets/animacoes/boss/frames_derrota"
-        os.makedirs(pasta_derrota, exist_ok=True)
-
-        self.frames_derrota = []
-
-        for i in range(16):
-            frame = imagem_derrota.subsurface(
-                (i * largura_derrota, 0, largura_derrota, altura_derrota)
-            ).copy()
-
-            frame = pygame.transform.scale_by(frame, 0.7)
-
-            caminho_frame = f"{pasta_derrota}/frame_{i}.png"
-            pygame.image.save(frame, caminho_frame)
-            self.frames_derrota.append(caminho_frame)
+        self.frames = carregar_frames_animacao(
+            "assets/animacoes/boss/fazendeiro.png",
+            quantidade=8,
+            escala=0.7,
+            metodo_escala="scale_by",
+        )
+        self.frames_ataque = carregar_frames_animacao(
+            "assets/animacoes/boss/fazendeiro_ataque.png",
+            quantidade=12,
+            escala=0.7,
+            metodo_escala="scale_by",
+        )
+        self.frames_derrota = carregar_frames_animacao(
+            "assets/animacoes/boss/fazendeiro_derrota.png",
+            quantidade=16,
+            escala=0.7,
+            metodo_escala="scale_by",
+        )
 
         self.derrotado = False
         self.indice_derrota = 0
@@ -60,34 +36,12 @@ class BossFazendeiro:
         self.ataques_com_spawn = 0
         self.derrota_finalizada = False
 
-        for i in range(12):
-            frame = imagem_ataque.subsurface(
-                (i * largura_ataque, 0, largura_ataque, altura_ataque)
-            ).copy()
-
-            frame = pygame.transform.scale_by(frame, 0.7)
-
-            caminho_frame = f"{pasta_ataque}/frame_{i}.png"
-            pygame.image.save(frame, caminho_frame)
-            self.frames_ataque.append(caminho_frame)
-
-        for i in range(8):
-            frame = imagem.subsurface(
-                (i * largura_frame, 0, largura_frame, altura_frame)
-            ).copy()
-
-            frame = pygame.transform.scale_by(frame, 0.7)
-
-            caminho_frame = f"{pasta_frames}/frame_{i}.png"
-            pygame.image.save(frame, caminho_frame)
-            self.frames.append(caminho_frame)
-
         self.indice_frame = 0
         self.tempo_frame = 120
         self.proximo_frame = pygame.time.get_ticks() + self.tempo_frame
 
         self.lane = 1
-        self.sprite = Sprite(self.frames[0])
+        self.sprite = self.frames[0]
         self.atacando = False
         self.indice_ataque = 0
         self.tempo_frame_ataque = 100
@@ -124,7 +78,7 @@ class BossFazendeiro:
             self.indice_derrota = 0
             self.proximo_frame_derrota = pygame.time.get_ticks()
 
-            self.sprite = Sprite(self.frames_derrota[0])
+            self.sprite = self.frames_derrota[0]
             self.sprite.set_position(self.x, self.y)
             return
 
@@ -145,11 +99,11 @@ class BossFazendeiro:
         self.proximo_frame_ataque = agora
         self.ultimo_update = agora
 
-        self.sprite = Sprite(self.frames_ataque[0])
+        self.sprite = self.frames_ataque[0]
         self.sprite.set_position(self.x, self.y)
 
     def desenhar_vida(self):
-        janela = pygame.display.get_surface()
+        janela = Window.get_screen()
 
         largura = 100
         altura = 10
@@ -177,9 +131,7 @@ class BossFazendeiro:
                     self.derrota_finalizada = True
                     return
 
-                self.sprite = Sprite(
-                    self.frames_derrota[self.indice_derrota]
-                )
+                self.sprite = self.frames_derrota[self.indice_derrota]
                 self.sprite.set_position(self.x, self.y)
 
                 self.proximo_frame_derrota = agora + self.tempo_frame_derrota
@@ -195,12 +147,10 @@ class BossFazendeiro:
                 if self.indice_ataque >= len(self.frames_ataque):
                     self.atacando = False
                     self.indice_frame = 0
-                    self.sprite = Sprite(self.frames[0])
+                    self.sprite = self.frames[0]
                     self.ultimo_update = agora
                 else:
-                    self.sprite = Sprite(
-                        self.frames_ataque[self.indice_ataque]
-                    )
+                    self.sprite = self.frames_ataque[self.indice_ataque]
 
                 self.proximo_frame_ataque = agora + self.tempo_frame_ataque
 
@@ -214,7 +164,7 @@ class BossFazendeiro:
 
         if agora >= self.proximo_frame:
             self.indice_frame = (self.indice_frame + 1) % len(self.frames)
-            self.sprite = Sprite(self.frames[self.indice_frame])
+            self.sprite = self.frames[self.indice_frame]
             self.proximo_frame = agora + self.tempo_frame
 
         self.sprite.set_position(self.x, self.y)

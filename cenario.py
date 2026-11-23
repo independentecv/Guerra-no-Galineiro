@@ -145,15 +145,22 @@ def criar_cenario():
     btn_menu_rankings.set_scale(1.1, 1.1)
     btn_menu_sair.set_scale(1.1, 1.1)
 
-    menu_y0 = config.WINDOW_HEIGHT / 2 - 30
+    altura_grupo = sum(
+        botao.height * botao.scale_y
+        for botao in botoes_menu
+    ) + menu_gap * (len(botoes_menu) - 1)
+    menu_y = (config.WINDOW_HEIGHT - altura_grupo) / 2 + 60
 
-    for i, botao in enumerate(botoes_menu):
+    for botao in botoes_menu:
+        largura = botao.width * botao.scale_x
+        altura = botao.height * botao.scale_y
         botao.set_position(
-            config.WINDOW_WIDTH / 2 - botao.width / 2,
-            menu_y0 + i * (botao.height + menu_gap)
+            (config.WINDOW_WIDTH - largura) / 2,
+            menu_y
         )
+        menu_y += altura + menu_gap
 
-    btn_voltar = Sprite('assets/botao_acao.png')
+    btn_voltar = Sprite('assets/menu.png')
     btn_voltar.set_position(
         config.WINDOW_WIDTH / 2 - btn_voltar.width / 2,
         config.WINDOW_HEIGHT - 110
@@ -205,7 +212,8 @@ def criar_cenario():
         "codorna": "assets/icone_codorna.png"
     }
 
-    slot_gap = 15
+    slot_gap = 35
+    largura_grupo = 220
     slots_inventario = []
 
     for i, tipo in enumerate(config.ITEM_TYPES):
@@ -216,21 +224,19 @@ def criar_cenario():
             icone_por_item[tipo], 80
         )
 
-        x = 15 + i * (slot_normal.width + slot_gap)
+        x = 15 + i * largura_grupo
 
         y = barra_itens_y + (
             barra_itens_altura - slot_normal.height
         ) / 2
 
-        icone.set_position(x, y)
-        icone.set_scale(0.5, 0.5)
-
         slot_normal.set_position(x, y)
         slot_sel.set_position(x, y)
 
+        icone.set_scale(0.5, 0.5)
         icone.set_position(
-            x + (slot_normal.width - icone.width) / 2 + 15,
-            y + (slot_normal.height - icone.height) / 2 + 15
+            x + 8,
+            y + (slot_normal.height - icone.height) / 2
         )
 
         slots_inventario.append({
@@ -241,7 +247,8 @@ def criar_cenario():
             "h": slot_normal.height,
             "sprite_normal": slot_normal,
             "sprite_sel": slot_sel,
-            "icone": icone
+            "icone": icone,
+            "texto_x": x + 65
         })
 
     return {

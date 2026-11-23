@@ -1,8 +1,9 @@
 
 import random
 import pygame
+from functools import lru_cache
 from PPlay.sprite import Sprite
-from animacoes import calcular_deslocamento
+from animacoes import calcular_deslocamento, carregar_frames_animacao
 import config
 
 ENEMY_IMAGES = {
@@ -99,64 +100,18 @@ class Enemy:
         self._proximo_pulo = self._sortear_proximo_pulo()
 
     def _carregar_frames_raposa(self):
-        spritesheet = pygame.image.load(
-            ENEMY_IMAGES["raposa"]
-        ).convert_alpha()
+        return carregar_frames_animacao(
+            ENEMY_IMAGES["raposa"],
+            quantidade=6,
+            escala=0.5,
+        )
 
-        largura_frame = spritesheet.get_width() // 6
-        altura_frame = spritesheet.get_height()
-
-        frames = []
-
-        for i in range(6):
-            quadro = spritesheet.subsurface(
-                (i * largura_frame, 0, largura_frame, altura_frame)
-            ).copy()
-
-            quadro = pygame.transform.smoothscale(
-                quadro,
-                (int(largura_frame * 0.5), int(altura_frame * 0.5))
-            )
-
-            caminho = f"assets/animacoes/raposa/raposa_frame_{i}.png"
-            pygame.image.save(quadro, caminho)
-            frames.append(Sprite(caminho))
-
-        return frames
     def _carregar_frames_animacao(self, quantidade, nome, escala=0.5):
-        spritesheet = pygame.image.load(
-            ENEMY_IMAGES[nome]
-        ).convert_alpha()
-
-        largura_frame = spritesheet.get_width() // quantidade
-        altura_frame = spritesheet.get_height()
-
-        frames = []
-
-        for i in range(quantidade):
-            quadro = spritesheet.subsurface(
-                (
-                    i * largura_frame,
-                    0,
-                    largura_frame,
-                    altura_frame
-                )
-            ).copy()
-
-            quadro = pygame.transform.smoothscale(
-                quadro,
-                (
-                    int(largura_frame * escala),
-                    int(altura_frame * escala)
-                )
-            )
-
-            caminho = f"assets/animacoes/{nome}/{nome}_frame_{i}.png"
-            pygame.image.save(quadro, caminho)
-
-            frames.append(Sprite(caminho))
-
-        return frames
+        return carregar_frames_animacao(
+            ENEMY_IMAGES[nome],
+            quantidade=quantidade,
+            escala=escala,
+        )
     def _sortear_proximo_pulo(self):
         return pygame.time.get_ticks() + random.randint(
             int(config.ENEMY_LANE_SWITCH_MIN_INTERVAL * 1000),
@@ -305,34 +260,11 @@ class Chicken:
         )
     def _carregar_frames_ataque(self):
         caminho = "assets/animacoes/galinha/galinha_attack.png"
-
-        spritesheet = pygame.image.load(caminho).convert_alpha()
-
-        quantidade = 8
-        largura_frame = spritesheet.get_width() // quantidade
-        altura_frame = spritesheet.get_height()
-
-        frames = []
-
-        for i in range(quantidade):
-            quadro = spritesheet.subsurface(
-                (i * largura_frame, 0, largura_frame, altura_frame)
-            ).copy()
-
-            quadro = pygame.transform.smoothscale(
-                quadro,
-                (
-                    int(largura_frame * 0.9),
-                    int(altura_frame * 0.9)
-                )
-            )
-
-            caminho_frame = f"assets/animacoes/galinha/galinha_attack_frame_{i}.png"
-            pygame.image.save(quadro, caminho_frame)
-
-            frames.append(Sprite(caminho_frame))
-
-        return frames
+        return carregar_frames_animacao(
+            caminho,
+            quantidade=8,
+            escala=0.9,
+        )
     
     def _recalcular_atributos(self):
         self.dano = config.CHICKEN_DANO + self.nivel_dano * config.UPGRADE_DANO_STEP
@@ -510,7 +442,8 @@ class Chicken:
             self.sprite_selecao.draw()
         self.sprite.draw()
 
-def redimensionar_ovo(caminho, tamanho):
+@lru_cache(maxsize=16)
+def _imagem_ovo_redimensionada(caminho, tamanho):
     imagem = pygame.image.load(caminho).convert_alpha()
 
     area = imagem.get_bounding_rect()
@@ -526,10 +459,22 @@ def redimensionar_ovo(caminho, tamanho):
         imagem, (nova_largura, nova_altura)
     )
 
-    caminho_temp = caminho.replace(".png", "_redimensionado.png")
-    pygame.image.save(imagem, caminho_temp)
+    return imagem
 
-    return Sprite(caminho_temp)
+
+def precarregar_ovo_codorna():
+    caminho = "assets/ovo_codorna.png"
+    _imagem_ovo_redimensionada(caminho, 14)
+    Sprite(caminho)
+
+
+def redimensionar_ovo(caminho, tamanho):
+    imagem = _imagem_ovo_redimensionada(caminho, tamanho)
+    sprite = Sprite(caminho)
+    sprite.image = imagem
+    sprite.width, sprite.height = imagem.get_size()
+    sprite.rect = imagem.get_rect()
+    return sprite
 
 class Egg:
 
@@ -538,10 +483,10 @@ class Egg:
             self.sprite = Sprite(sprite_path)
 
         elif tipo_especial == "gigante":
-            self.sprite = redimensionar_ovo(sprite_path, 32)
+            self.sprite = redimensionar_ovo(sprite_path, 24)
 
         elif tipo_especial == "codorna":
-            self.sprite = redimensionar_ovo(sprite_path, 20)
+            self.sprite = redimensionar_ovo(sprite_path, 18)
 
         elif tipo_especial == "podre":
             self.sprite = redimensionar_ovo(sprite_path, 20)
@@ -608,46 +553,22 @@ class Puddle:
         self.tempo_frame = 120
         self.proximo_frame = pygame.time.get_ticks() + self.tempo_frame
 
+        sprite_y = y - self.sprite.height / 2 - 10
+        limite_inferior = (
+            config.PLAYFIELD_Y + config.PLAYFIELD_HEIGHT - self.sprite.height
+        )
         self.sprite.set_position(
             x - self.sprite.width / 2,
-            y - self.sprite.height / 2 - 10
+            min(sprite_y, limite_inferior)
         )
 
     def _carregar_frames(self):
         caminho = "assets/effects/poca.png"
-
-        spritesheet = pygame.image.load(caminho).convert_alpha()
-
-        quantidade = 12
-        largura_frame = spritesheet.get_width() // quantidade
-        altura_frame = spritesheet.get_height()
-
-        frames = []
-
-        for i in range(quantidade):
-            quadro = spritesheet.subsurface(
-                (
-                    i * largura_frame,
-                    0,
-                    largura_frame,
-                    altura_frame
-                )
-            ).copy()
-
-            quadro = pygame.transform.smoothscale(
-                quadro,
-                (
-                    int(largura_frame * 2.5),
-                    int(altura_frame * 2.5)
-                )
-            )
-
-            caminho_frame = f"assets/effects/poca_frame_{i}.png"
-            pygame.image.save(quadro, caminho_frame)
-
-            frames.append(Sprite(caminho_frame))
-
-        return frames
+        return carregar_frames_animacao(
+            caminho,
+            quantidade=12,
+            escala=2.3,
+        )
 
     def update(self):
         agora = pygame.time.get_ticks()

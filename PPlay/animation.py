@@ -91,25 +91,24 @@ class Animation(GameImage):
             self.frame_atual * self.width, 0,
             self.width, self.height
         )
-        
-        # Extrai o frame da spritesheet
-        frame_surface = self.image.subsurface(area_corte).copy()
-        
-        # Aplica transparência
-        frame_surface.set_alpha(self.transparency)
-        
-        # Aplica rotação
-        if self.rotation != 0:
-            frame_surface = pygame.transform.rotate(frame_surface, self.rotation)
-        
-        # Aplica escala
-        if self.scale_x != 1.0 or self.scale_y != 1.0:
-            nova_w = max(1, int(self.width * self.scale_x))
-            nova_h = max(1, int(self.height * self.scale_y))
-            frame_surface = pygame.transform.scale(frame_surface, (nova_w, nova_h))
-        
-        # Desenha apenas o pedaço (frame) transformado no buffer virtual
-        Window.get_screen().blit(frame_surface, (draw_x, draw_y))
+
+        tela = Window.get_screen()
+        if (
+            self.scale_x == 1.0
+            and self.scale_y == 1.0
+            and self.rotation == 0
+            and self.transparency == 255
+            and self.image.get_alpha() in (None, 255)
+        ):
+            tela.blit(self.image, (draw_x, draw_y), area_corte)
+            return
+
+        frame_surface = self.image.subsurface(area_corte)
+        frame_surface = self._render_surface(
+            frame_surface,
+            (id(self.image), self.frame_atual, tuple(area_corte)),
+        )
+        tela.blit(frame_surface, (draw_x, draw_y))
 
     def play(self): self.rodando = True
     def stop(self): self.rodando = False; self.frame_atual = 0

@@ -1,6 +1,18 @@
 import pygame
 import sys
+from functools import lru_cache
 from pygame.locals import *
+
+
+@lru_cache(maxsize=32)
+def _get_font(fonte, tamanho, bold=False, italic=False):
+    return pygame.font.SysFont(fonte, tamanho, bold, italic)
+
+
+@lru_cache(maxsize=512)
+def _render_text(texto, fonte, tamanho, cor, bold=False, italic=False):
+    return _get_font(fonte, tamanho, bold, italic).render(texto, True, cor)
+
 
 """
 ===============================================================================
@@ -60,6 +72,8 @@ class Window:
         
         # Cria o Buffer Virtual (Canvas)
         self.screen = pygame.Surface((self.largura, self.altura))
+        self._scaled_surface = None
+        self._scaled_surface_size = None
         Window.screen = self.screen # Sincroniza atributo estático
         
         pygame.display.set_caption(self.titulo)
@@ -100,20 +114,39 @@ class Window:
         pos_x = (largura_real - nova_w) // 2
         pos_y = (altura_real - nova_h) // 2
         
-        # Preenche fundo (faixas pretas)
-        self.real_screen.fill((0, 0, 0))
-        
-        # Tenta realizar o redimensionamento com tratamento de erro
-        try:
-            if self.pixel_art:
-                scaled = pygame.transform.scale(self.screen, (nova_w, nova_h))
-            else:
-                scaled = pygame.transform.smoothscale(self.screen, (nova_w, nova_h))
-            
-            self.real_screen.blit(scaled, (pos_x, pos_y))
-        except pygame.error:
-            # Fallback caso o transform falhe por algum motivo de hardware
-            self.real_screen.blit(self.screen, (0, 0))
+        tamanho_virtual = (self.largura, self.altura)
+        tamanho_destino = (nova_w, nova_h)
+
+        if tamanho_destino == tamanho_virtual:
+            if nova_w != largura_real or nova_h != altura_real:
+                self.real_screen.fill((0, 0, 0))
+            self.real_screen.blit(self.screen, (pos_x, pos_y))
+        else:
+            if nova_w != largura_real or nova_h != altura_real:
+                self.real_screen.fill((0, 0, 0))
+
+            try:
+                if self._scaled_surface_size != tamanho_destino:
+                    self._scaled_surface = pygame.Surface(
+                        tamanho_destino,
+                        flags=self.screen.get_flags(),
+                        depth=self.screen.get_bitsize(),
+                        masks=self.screen.get_masks(),
+                    )
+                    self._scaled_surface_size = tamanho_destino
+
+                if self.pixel_art:
+                    pygame.transform.scale(
+                        self.screen, tamanho_destino, self._scaled_surface
+                    )
+                else:
+                    pygame.transform.smoothscale(
+                        self.screen, tamanho_destino, self._scaled_surface
+                    )
+
+                self.real_screen.blit(self._scaled_surface, (pos_x, pos_y))
+            except pygame.error:
+                self.real_screen.blit(self.screen, (0, 0))
             
         pygame.display.flip()
         
@@ -146,8 +179,8 @@ class Window:
 
     def draw_text(self, texto, x, y, tamanho=20, cor=(255, 255, 255), fonte="Arial"):
         try:
-            f = pygame.font.SysFont(fonte, tamanho)
-            img = f.render(str(texto), True, cor)
+            cor_cache = tuple(pygame.Color(cor))
+            img = _render_text(str(texto), fonte, tamanho, cor_cache)
             self.screen.blit(img, (x, y))
         except: pass
 

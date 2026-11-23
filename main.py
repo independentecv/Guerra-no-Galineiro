@@ -10,6 +10,7 @@ import interface
 import menus
 import jogo
 import cenario
+from entities import precarregar_ovo_codorna
 from especiais_codigo.galo import Galo
 from especiais_codigo.pintinho import Pintinho
 import especiais_codigo.habilidades as habilidades
@@ -25,6 +26,7 @@ pygame.mixer.music.load(MUSICA_NORMAL)
 pygame.mixer.music.set_volume(0.5)
 
 
+
 musica_atual = "normal"
 
 janela = Window(
@@ -32,6 +34,7 @@ janela = Window(
     config.WINDOW_HEIGHT,
     config.WINDOW_TITLE
 )
+precarregar_ovo_codorna()
 
 galo = Galo()
 galo.set_position(450, 250)
@@ -422,7 +425,3 @@ while True:
         efeitos.aplicar_tremida(intensidade)
 
     janela.update()
-
-    if pygame.time.get_ticks() < tremida_ate:
-        efeitos.aplicar_tremida(8)
-        pygame.display.flip()

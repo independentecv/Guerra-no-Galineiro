@@ -1,8 +1,11 @@
-
 import config
 import ranking
 import interface
+import pygame
 
+imagem_inicial = pygame.image.load("assets/inicial.png")
+imagem_ajustada = None
+imagem_tela_ranking = None
 
 def menu_principal(janela, btn_iniciar, btn_rankings, btn_sair):
     mx, my = janela.mouse.get_position()
@@ -16,19 +19,27 @@ def menu_principal(janela, btn_iniciar, btn_rankings, btn_sair):
         elif interface.clicou_em(btn_sair, mx, my):
             acao = "SAIR"
 
-    interface.texto_centralizado(
-        janela, "Guerra no Galinheiro",
-        config.WINDOW_HEIGHT / 2 - 150,
-        tamanho=40, cor="white"
-    )
+    global imagem_ajustada
+
+    tela = janela.get_screen()
+
+    if imagem_ajustada is None:
+        imagem_ajustada = pygame.transform.scale(
+            imagem_inicial,
+            tela.get_size()
+        )
+
+    tela.blit(imagem_ajustada, (0, 0))
+
     btn_iniciar.draw()
     btn_rankings.draw()
     btn_sair.draw()
-    
+
     return acao
 
-
 def tela_rankings(janela, btn_voltar):
+    global imagem_tela_ranking
+
     mx, my = janela.mouse.get_position()
     acao = None
 
@@ -36,34 +47,30 @@ def tela_rankings(janela, btn_voltar):
         if interface.clicou_em(btn_voltar, mx, my):
             acao = "VOLTAR"
 
-    interface.texto_centralizado(
-        janela, "Rankings", 90, tamanho=36, cor="white"
-    )
-
-    interface.texto_centralizado(
-        janela, "Melhores rodadas alcancadas",
-        140, tamanho=18, cor="white"
-    )
+    tela = janela.get_screen()
+    if imagem_tela_ranking is None:
+        imagem_tela_ranking = pygame.image.load(
+            "assets/tela_ranking.png"
+        ).convert()
+        if imagem_tela_ranking.get_size() != tela.get_size():
+            imagem_tela_ranking = pygame.transform.smoothscale(
+                imagem_tela_ranking, tela.get_size()
+            )
+    tela.blit(imagem_tela_ranking, (0, 0))
 
     lista_ranking = ranking.carregar()
 
-    if not lista_ranking:
-        interface.texto_centralizado(
-            janela, "Nenhuma partida registrada ainda",
-            240, tamanho=18, cor="white"
+    for pos, entrada in enumerate(lista_ranking):
+        linha = f"{pos + 1:>2}.   Onda {entrada['rodada']:<4}   {entrada['data']}"
+        janela.draw_text(
+            linha,
+            config.WINDOW_WIDTH / 2 - 130,
+            265 + pos * 22,
+            tamanho=20,
+            cor="white"
         )
-    else:
-        for pos, entrada in enumerate(lista_ranking):
-            linha = f"{pos + 1:>2}.   Onda {entrada['rodada']:<4}   {entrada['data']}"
-            janela.draw_text(
-                linha,
-                config.WINDOW_WIDTH / 2 - 130,
-                200 + pos * 34,
-                tamanho=20,
-                cor="white"
-            )
 
-    interface.desenhar_botao(janela, btn_voltar, "Voltar", mx, my)
+    btn_voltar.draw()
 
     return acao
 

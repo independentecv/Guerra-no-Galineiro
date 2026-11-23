@@ -29,8 +29,8 @@ def novo_jogo():
         "galinha_selecionada": None,
         "ranking_salvo": False,
         "posicao_ranking": None,
-        "carga_pintinho": 20,
-        "carga_galo": 20,
+        "carga_pintinho": 0,
+        "carga_galo": 0,
         "boss": None,
         "gameover_chefe": False,
         "proxima_rodada_chefe": 7,
@@ -49,12 +49,12 @@ def matar_inimigo(inimigo, estado_jogo, lista_remocao):
 
     estado_jogo["carga_pintinho"] = min(
         100,
-        estado_jogo["carga_pintinho"] + 11
+        estado_jogo["carga_pintinho"] + 8
     )
 
     estado_jogo["carga_galo"] = min(
         100,
-        estado_jogo["carga_galo"] + 12
+        estado_jogo["carga_galo"] + 9
     )
 
     if random.random() < config.ITEM_DROP_CHANCE:
@@ -245,6 +245,7 @@ def verificar_fim_onda(estado_jogo):
         )
 
 
+
 def tratar_cliques(
     estado_jogo,
     mx,
@@ -314,7 +315,10 @@ def tratar_cliques(
                 clique_tratado = True
                 break
 
+    
     if not clique_tratado:
+        custo = config.custo_galinha(estado_jogo["rodada"])
+
         for ninho in ninhos:
             if ninho["ocupado"]:
                 continue
@@ -323,8 +327,8 @@ def tratar_cliques(
             nw, nh = ninho["w"], ninho["h"]
 
             if nx <= mx <= nx + nw and ny <= my <= ny + nh:
-                if estado_jogo["sementes"] >= config.CHICKEN_COST:
-                    estado_jogo["sementes"] -= config.CHICKEN_COST
+                if estado_jogo["sementes"] >= custo:
+                    estado_jogo["sementes"] -= custo
 
                     nova = Chicken(
                         ninho["centro_x"],
@@ -336,6 +340,7 @@ def tratar_cliques(
                     ninho["galinha"] = nova
                     som_galinha.play()
                 break
+
 
 
 def atualizar_galinhas(galinhas, estado_jogo):
@@ -435,6 +440,8 @@ def atualizar_ovos(estado_jogo, agora):
             ):
                 som_ovo_quebrando.play()
                 boss.receber_dano(ovo.dano)
+                ovos_para_remover.append(ovo)
+            elif ovo.fora_da_tela():
                 ovos_para_remover.append(ovo)
 
         elif ovo.fora_da_tela():

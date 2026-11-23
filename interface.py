@@ -65,6 +65,32 @@ def desenhar_cenario(
     painel_baixo_y,
     especial_escolhido
 ):
+    nomes_itens = {
+        "podre": "PODRE",
+        "gigante": "GIGANTE",
+        "chupim": "CHUPIM",
+        "codorna": "CODORNA"
+    }
+
+    efeitos_itens = {
+        "podre": "Lentidao",
+        "gigante": "Dano",
+        "chupim": "Resetar",
+        "codorna": "Multiplicar"
+    }
+    cores_itens = {
+    "podre": (166, 217, 106),
+    "gigante": (255, 255, 255),
+    "chupim": (210, 190, 150),
+    "codorna": (214, 166, 232)
+}
+
+    tamanhos_itens = {
+        "podre": 14,
+        "gigante": 18,
+        "chupim": 14,
+        "codorna": 14
+    }
     background.draw()
 
     for poca in estado_jogo["pocas"]:
@@ -87,7 +113,7 @@ def desenhar_cenario(
     janela.draw_text(
     f"Onda: {estado_jogo['rodada']}   Sementes: {estado_jogo['sementes']}   "
     f"Pintinhos: {estado_jogo['pintinhos']}/{config.MAX_PINTINHOS}   "
-    f"Custo galinha: {config.CHICKEN_COST}   "
+    f"Custo galinha: {config.custo_galinha(estado_jogo['rodada'])}   "
     f"FPS: {int(janela.get_fps())}",
     x=10,
     y=15,
@@ -113,34 +139,45 @@ def desenhar_cenario(
         )
         barra_itens.draw()
 
+
     for slot in slots_inventario:
+        tipo = slot["tipo"]
         if estado_jogo["item_para_equipar"] == slot["tipo"]:
             slot["sprite_sel"].draw()
         else:
             slot["sprite_normal"].draw()
 
+        
+
+        if tipo == "gigante":
+            largura = slot["icone"].width
+            altura = slot["icone"].height
+
+            slot["icone"].set_scale(0.65,0.65)
+
+            slot["icone"].set_position(
+                slot["x"] + 8,
+                slot["y"] + 4
+            )
+        else:
+            slot["icone"].set_position(
+                slot["x"] + 8,
+                slot["y"] + 8
+            )
+
         slot["icone"].draw()
 
         qtd = estado_jogo["inventario"][slot["tipo"]]
-
+        
         janela.draw_text(
             str(qtd),
-            slot["x"] + slot["w"] - 16,
-            slot["y"] + slot["h"] - 18,
+            slot["x"] + 45,
+            slot["y"] + slot["h"] - 15,
             cor="white"
         )
 
-    if estado_jogo["item_para_equipar"] is not None:
-        label = config.ITEM_LABELS[
-            estado_jogo["item_para_equipar"]
-        ]
+        tipo = slot["tipo"]
 
-        janela.draw_text(
-            f"Clique numa galinha para equipar: {label}",
-            260,
-            barra_itens_y + 22,
-            cor="white"
-        )
 
     painel_baixo.draw()
 
@@ -231,3 +268,21 @@ def desenhar_cenario(
             x=600,
             y=painel_baixo_y + 23
         )
+    for slot in slots_inventario:
+        tipo = slot["tipo"]
+
+        janela.draw_text(
+            nomes_itens[tipo].upper(),
+            slot["texto_x"],
+            slot["y"] + 5,
+            tamanho=tamanhos_itens[tipo],
+            cor=cores_itens[tipo]
+        )
+
+        janela.draw_text(
+        f"EFEITO: {efeitos_itens[tipo].upper()}",
+        slot["texto_x"],
+        slot["y"] + 34,
+        tamanho=13,
+        cor=cores_itens[tipo]
+    )

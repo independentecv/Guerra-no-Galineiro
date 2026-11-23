@@ -11,6 +11,7 @@ RANKING_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ranking
 RANKING_MAX = 10   # quantas posicoes sao guardadas/exibidas
 
 
+
 def carregar():
     """Retorna a lista [{"rodada": int, "data": str}, ...] ordenada da melhor
     para a pior. Se o arquivo nao existir ou estiver corrompido, retorna []."""
