@@ -54,7 +54,7 @@ class BossFazendeiro:
         self.y = config.lane_y_center(self.lane) - self.sprite.height / 2
 
         self.aparicao = aparicao
-        self.vida_maxima = int(650 * (1 + 0.95 * (aparicao - 1)))
+        self.vida_maxima = int(600 * (1 + 0.90 * (aparicao - 1)))
         self.vida = self.vida_maxima
 
         self.vivo = True

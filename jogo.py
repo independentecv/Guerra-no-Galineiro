@@ -31,6 +31,7 @@ def novo_jogo():
         "posicao_ranking": None,
         "carga_pintinho": 0,
         "carga_galo": 0,
+        "lentidao_pintinho_lane": None,
         "boss": None,
         "gameover_chefe": False,
         "proxima_rodada_chefe": 7,
@@ -49,12 +50,12 @@ def matar_inimigo(inimigo, estado_jogo, lista_remocao):
 
     estado_jogo["carga_pintinho"] = min(
         100,
-        estado_jogo["carga_pintinho"] + 8
+        estado_jogo["carga_pintinho"] + config.PINTINHO_CARGA_POR_INIMIGO
     )
 
     estado_jogo["carga_galo"] = min(
         100,
-        estado_jogo["carga_galo"] + 9
+        estado_jogo["carga_galo"] + config.GALO_CARGA_POR_INIMIGO
     )
 
     if random.random() < config.ITEM_DROP_CHANCE:
@@ -198,8 +199,12 @@ def atualizar_inimigos(estado_jogo):
             if poca.afeta(inimigo):
                 mult = min(mult, config.PODRE_SLOW_MULT)
 
-        if agora < getattr(inimigo, "lentidao_pintinho_ate", 0):
-            mult = min(mult, 0.5)
+        if (
+            getattr(inimigo, "lentidao_pintinho_ativa", False)
+            or estado_jogo["lentidao_pintinho_lane"] == inimigo.lane_atual
+            or agora < getattr(inimigo, "lentidao_pintinho_ate", 0)
+        ):
+            mult = min(mult, config.PINTINHO_MULT_VELOCIDADE)
 
         if agora < getattr(inimigo, "congelado_ate", 0):
             mult = 0

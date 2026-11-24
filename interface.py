@@ -110,33 +110,38 @@ def desenhar_cenario(
 
     painel_topo.draw()
 
-    janela.draw_text(
-    f"Onda: {estado_jogo['rodada']}   Sementes: {estado_jogo['sementes']}   "
-    f"Pintinhos: {estado_jogo['pintinhos']}/{config.MAX_PINTINHOS}   "
-    f"Custo galinha: {config.custo_galinha(estado_jogo['rodada'])}   "
-    f"FPS: {int(janela.get_fps())}",
-    x=10,
-    y=15,
-    tamanho=20,
-    cor="white"
-)
+    restantes = (
+        len(estado_jogo["fila_spawn"])
+        + len(estado_jogo["inimigos"])
+        + int(
+            estado_jogo["boss"] is not None
+            and estado_jogo["boss"].vivo
+        )
+    )
+
+    resumo_topo = [
+        (f"Onda: {estado_jogo['rodada']}", 10, "white"),
+        (f"Sementes: {estado_jogo['sementes']}", 112, "yellow"),
+        (
+            f"Custo galinha: {config.custo_galinha(estado_jogo['rodada'])}",
+            260,
+            "lightgreen"
+        ),
+        (f"Restantes: {restantes}", 450, "orange"),
+        (
+            f"Pintinhos: {estado_jogo['pintinhos']}/{config.MAX_PINTINHOS}",
+            630,
+            "lightblue"
+        ),
+    ]
+
+    for texto, x, cor in resumo_topo:
+        janela.draw_text(texto, x, 15, tamanho=18, cor=cor)
 
     if estado_jogo["estado"] == "COMPRA":
         btn_iniciar.draw()
 
     else:
-        restantes = (
-            len(estado_jogo["fila_spawn"])
-            + len(estado_jogo["inimigos"])
-        )
-
-        janela.draw_text(
-            f"{restantes} restantes",
-            btn_iniciar.x - 60,
-            btn_iniciar.y + 5,
-            tamanho=26,
-            cor="orange"
-        )
         barra_itens.draw()
 
 
@@ -185,10 +190,11 @@ def desenhar_cenario(
 
     if galinha_sel is None:
         janela.draw_text(
-            "Clique numa galinha ja colocada para ver upgrades",
+            "Clique na galinha para aprimorar",
             20,
-            painel_baixo_y + 12,
-            cor="white"
+            painel_baixo_y + 7,
+            tamanho=22,
+            cor="yellow"
         )
 
     else:
@@ -234,14 +240,16 @@ def desenhar_cenario(
 
     
     if especial_escolhido == "PINTINHO":
-
-        janela.draw_text(
-            "SELECIONE A LANE E APERTE ESPAÇO",
-            650,
-            painel_baixo_y + 7,
-            tamanho=16,
-            cor="yellow"
-        )
+        if estado_jogo["carga_pintinho"] >= 100:
+            piscar = (pygame.time.get_ticks() // 450) % 2 == 0
+            if piscar:
+                janela.draw_text(
+                    "Pintinho: 1/2/3 + ESPAÇO causa dano/lentidão!",
+                    600,
+                    painel_baixo_y + 7,
+                    tamanho=15,
+                    cor="yellow"
+                )
 
         barra_especial.desenhar_barra_especial(
             janela,
@@ -252,14 +260,16 @@ def desenhar_cenario(
         )
 
     elif especial_escolhido == "GALO":
-
-        janela.draw_text(
-            "APERTE G",
-            720,
-            painel_baixo_y + 7,
-            tamanho=18,
-            cor="red"
-        )
+        if estado_jogo["carga_galo"] >= 100:
+            piscar = (pygame.time.get_ticks() // 450) % 2 == 0
+            if piscar:
+                janela.draw_text(
+                    "Galo: aperte G para paralisar por 2 segundos!",
+                    585,
+                    painel_baixo_y + 7,
+                    tamanho=15,
+                    cor="orange"
+                )
 
         barra_especial.desenhar_barra_especial(
             janela,

@@ -89,6 +89,7 @@ class Enemy:
         self.vivo = True
         self.confuso_ate = 0
         self.congelado_ate = 0
+        self.lentidao_pintinho_ativa = False
         self.tempo_proxima_tremida = 0
         self.offset_tremida_x = 0
         self.offset_tremida_y = 0
@@ -483,7 +484,7 @@ class Egg:
             self.sprite = Sprite(sprite_path)
 
         elif tipo_especial == "gigante":
-            self.sprite = redimensionar_ovo(sprite_path, 24)
+            self.sprite = redimensionar_ovo(sprite_path, 30)
 
         elif tipo_especial == "codorna":
             self.sprite = redimensionar_ovo(sprite_path, 18)

@@ -8,12 +8,25 @@ som_pintinho_1 = pygame.mixer.Sound("sounds/pintinho.mp3")
 som_pintinho_2 = pygame.mixer.Sound("sounds/pintinho2.mp3")
 
 proximo_som_pintinho = 0
-DANO_MAX_PINTINHO = 90
-DANO_MIN_PINTINHO = 25
-DISTANCIA_MAX_PINTINHO = 900
+DANO_MAX_PINTINHO = 35
+DANO_MIN_PINTINHO = 15
+DISTANCIA_MAX_PINTINHO = 800
 
-DURACAO_LENTIDAO_PINTINHO = 2800
-MULT_PINTINHO = 0.5
+MULT_PINTINHO = config.PINTINHO_MULT_VELOCIDADE
+
+
+def ativar_lentidao_pintinho(estado_jogo, lane):
+    estado_jogo["lentidao_pintinho_lane"] = lane
+    for inimigo in estado_jogo["inimigos"]:
+        if inimigo.vivo and inimigo.lane_atual == lane:
+            inimigo.lentidao_pintinho_ativa = True
+
+
+def remover_lentidao_pintinho(estado_jogo):
+    estado_jogo["lentidao_pintinho_lane"] = None
+    for inimigo in estado_jogo["inimigos"]:
+        inimigo.lentidao_pintinho_ativa = False
+
 
 def tocar_som_pintinho():
     global proximo_som_pintinho
@@ -25,9 +38,6 @@ def tocar_som_pintinho():
         som_pintinho_2.play()
         proximo_som_pintinho = 0
 def ativar_pintinho(estado_jogo, lane, x_pintinho):
-
-    agora = pygame.time.get_ticks()
-
     for inimigo in estado_jogo["inimigos"]:
 
         if inimigo.lane_atual != lane:
@@ -44,22 +54,22 @@ def ativar_pintinho(estado_jogo, lane, x_pintinho):
                 DANO_MAX_PINTINHO - DANO_MIN_PINTINHO
             ) * proporcao
 
+        if not inimigo.vivo:
+            continue
+
         inimigo.hp -= int(dano)
 
-        inimigo.lentidao_pintinho_ate = (
-            agora + DURACAO_LENTIDAO_PINTINHO
-        )
-def ativar_pintinho_por_tecla(estado_jogo, lane, x_pintinho):
+
+def ativar_pintinho_por_tecla(estado_jogo):
     if estado_jogo["carga_pintinho"] < 100:
         return False
-
-    ativar_pintinho(estado_jogo, lane, x_pintinho)
 
     estado_jogo["carga_pintinho"] = 0
     tocar_som_pintinho()
     return True
 
-DURACAO_CONGELAMENTO_GALO = 3000
+
+DURACAO_CONGELAMENTO_GALO = 2000
 
 
 

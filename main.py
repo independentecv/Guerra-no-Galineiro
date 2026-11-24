@@ -77,6 +77,8 @@ estado_jogo = jogo.resetar_partida(ninhos, galinhas)
 tela = "MENU"
 especial_escolhido = None
 lane_pintinho = 0
+lane_pintinho_ativo = 0
+x_pintinho_ativo = 0
 
 teclas_anteriores = {
     pygame.K_1: False,
@@ -243,20 +245,25 @@ while True:
         especial_escolhido == "PINTINHO"
         and tecla_espaco
         and estado_jogo["estado"] == "ONDA"
+        and not pintinho.ativo
     ):
 
-        ativou = habilidades.ativar_pintinho_por_tecla(
-            estado_jogo,
-            lane_pintinho,
-            config.WINDOW_WIDTH - pintinho.sprite.width - 110
-        )
+        ativou = habilidades.ativar_pintinho_por_tecla(estado_jogo)
 
         if ativou:
+            lane_pintinho_ativo = lane_pintinho
+            x_pintinho_ativo = (
+                config.WINDOW_WIDTH - pintinho.sprite.width - 110 - 35
+            )
             pintinho.ativar(
-                config.WINDOW_WIDTH - pintinho.sprite.width - 110,
+                x_pintinho_ativo,
                 config.lane_y_center(lane_pintinho)
                 - pintinho.sprite.height / 2
                 - 15
+            )
+            habilidades.ativar_lentidao_pintinho(
+                estado_jogo,
+                lane_pintinho_ativo
             )
 
     if (
@@ -370,7 +377,13 @@ while True:
         galo.update()
 
     if especial_escolhido == "PINTINHO":
-        pintinho.update()
+        if pintinho.update():
+            habilidades.remover_lentidao_pintinho(estado_jogo)
+            habilidades.ativar_pintinho(
+                estado_jogo,
+                lane_pintinho_ativo,
+                x_pintinho_ativo
+            )
 
     if rodada_chefe:
 
